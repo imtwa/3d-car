@@ -8,14 +8,16 @@ export const useUserStore = defineStore('user', () => {
   const isLoggedIn = ref(!!token.value)
 
   // 登录方法
-  const login = async (username, password) => {
+  const login = async (loginData) => {
     try {
-      const res = await userApi.login({ username, password })
+      const res = await userApi.login(loginData)
       if (res.code === 200) {
-        token.value = res.data.token
+        // 确保token包含Bearer前缀，这是Spring Security的标准格式
+        const tokenWithPrefix = res.data.token.startsWith('Bearer ') ? res.data.token : `Bearer ${res.data.token}`
+        token.value = tokenWithPrefix
         userInfo.value = res.data.user
         isLoggedIn.value = true
-        localStorage.setItem('token', res.data.token)
+        localStorage.setItem('token', tokenWithPrefix)
         return true
       }
       return false
@@ -52,11 +54,46 @@ export const useUserStore = defineStore('user', () => {
   }
 
   // 注册方法
-  const register = async (username, password) => {
+  const register = async (registerData) => {
     try {
-      const res = await userApi.register({ username, password })
-      return true
+      const res = await userApi.register(registerData)
+      if (res.code === 200) {
+        return {
+          success: true,
+          message: '注册成功'
+        }
+      }
+      return {
+        success: false,
+        message: res.message || '注册失败'
+      }
     } catch (error) {
+      console.error('注册失败:', error)
+      return {
+        success: false,
+        message: error.message || '注册失败'
+      }
+    }
+  }
+
+  // 检查用户名是否存在
+  const checkUsername = async (username) => {
+    try {
+      const res = await userApi.checkUsername(username)
+      return res.code === 200 ? res.data : false
+    } catch (error) {
+      console.error('检查用户名失败:', error)
+      return false
+    }
+  }
+
+  // 验证滑块验证码
+  const verifySlideCode = async (slideVerifyFlag) => {
+    try {
+      const res = await userApi.verifySlideCode(slideVerifyFlag)
+      return res.code === 200 ? res.data : false
+    } catch (error) {
+      console.error('验证滑块验证码失败:', error)
       return false
     }
   }
@@ -68,6 +105,8 @@ export const useUserStore = defineStore('user', () => {
     login,
     getUserInfo,
     logout,
-    register
+    register,
+    checkUsername,
+    verifySlideCode
   }
 })
