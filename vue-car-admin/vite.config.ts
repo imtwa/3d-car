@@ -19,7 +19,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
-      port: 90,
+      port: 8081, // 后台管理系统端口
       host: true,
       open: true,
       proxy: {

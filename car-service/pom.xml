@@ -178,6 +178,7 @@
         <module>lihua-core</module>
         <module>lihua-common</module>
         <module>lihua-service</module>
+        <module>lihua-car</module>
     </modules>
 
     <build>

@@ -17,9 +17,9 @@ lihua:
   # 公开文件的业务编码，publicLocalDownload 中判断包含业务编码的文件才会进行返回
   uploadPublicBusinessCode: [UserAvatar, SystemNotice]
   # 上传文件路径 mac windows 注意目录切换
-  uploadFilePath: E:/aProject/Vue/GD/vue-car-front/car-service/carData/upload/
+  uploadFilePath: D:/aProject/Vue/GD/3d-car/car-service/carData/upload/
   # 文件导出路径
-  exportFilePath: E:/aProject/Vue/GD/vue-car-front/car-service/carData/export/
+  exportFilePath: D:/aProject/Vue/GD/3d-car/car-service/carData/export/
 
 spring:
   # 数据源配置
@@ -85,7 +85,7 @@ spring:
 # 日志配置
 logging:
   file:
-    name: E:/aProject/Vue/GD/vue-car-front/car-service/carData/logs/car.log
+    name: D:/aProject/Vue/GD/3d-car/car-service/carData/logs/car.log
   level:
     com.lihua: debug
     org.springframework: info
@@ -106,7 +106,7 @@ xxl-job:
   # 执行器端口号
   port: 0
   # 执行器日志保存目录
-  logPath: E:/aProject/Vue/GD/vue-car-front/car-service/carData/job-logs
+  logPath: D:/aProject/Vue/GD/3d-car/car-service/carData/job-logs
   # 执行器日志保存天数
   logRetentionDays: 30
 
