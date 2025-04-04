@@ -28,7 +28,7 @@ defineProps({
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   transition: all 0.3s;
   cursor: pointer;
-  margin-bottom: 30px;
+  margin-bottom: 10px;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -70,11 +70,10 @@ defineProps({
       font-size: 1rem;
       line-height: 1.6;
       margin-bottom: 20px;
-      min-height: 60px;
     }
     
     .view-more-btn {
-      margin-top: 10px;
+      margin-top: 8px;
       width: 120px;
       font-size: 1rem;
     }

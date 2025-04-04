@@ -41,15 +41,14 @@ const brands = ref([
 
 <style lang="scss" scoped>
 .brands {
-  padding: 60px 40px;
+  padding: 20px 40px;
   max-width: 1200px;
   margin: 0 auto;
   background-color: #f5f5f5;
-  min-height: calc(100vh - 60px);
 
   .brand-header {
     text-align: center;
-    margin-bottom: 60px;
+    margin-bottom: 20px;
 
     h1 {
       font-size: 3rem;
@@ -68,14 +67,14 @@ const brands = ref([
   }
 
   .brand-list {
-    padding: 20px 0;
+    padding: 8px 0;
 
     .el-row {
-      margin-bottom: 40px;
+      margin-bottom: 8px;
     }
 
     .el-col {
-      margin-bottom: 40px;
+      margin-bottom: 8px;
       height: 100%;
     }
   }

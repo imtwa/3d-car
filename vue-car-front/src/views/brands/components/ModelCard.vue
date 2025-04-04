@@ -5,7 +5,7 @@
     </div>
     <h3>{{ model.name }}</h3>
     <p class="price">{{ model.price }}</p>
-    <el-button type="primary" @click="$emit('view3d')">3D展示</el-button>
+    <el-button type="primary" @click="$emit('showView')">查看详情</el-button>
   </div>
 </template>
 
