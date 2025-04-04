@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D汽车展示平台 - 原型图</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+        }
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            background-color: #1a1a1a;
+            color: white;
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff;
+            text-decoration: none;
+        }
+        .nav {
+            display: flex;
+            gap: 20px;
+        }
+        .nav a {
+            color: #fff;
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        .nav a:hover, .nav a.active {
+            background-color: #3498db;
+        }
+        .user-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #3498db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        .btn-secondary {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+        .btn-secondary:hover {
+            background-color: #ccc;
+        }
+        .section {
+            margin: 40px 0;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 30px;
+        }
+        .section-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .prototype-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+        .prototype-nav button {
+            padding: 10px 20px;
+            background-color: #f0f0f0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .prototype-nav button.active {
+            background-color: #3498db;
+            color: white;
+        }
+        .prototype-content {
+            display: none;
+        }
+        .prototype-content.active {
+            display: block;
+        }
+        /* 首页样式 */
+        .hero {
+            background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            text-align: center;
+            padding: 100px 20px;
+            border-radius: 8px;
+            margin-bottom: 40px;
+        }
+        .hero h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        .hero p {
+            font-size: 20px;
+            margin-bottom: 30px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        .feature-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        .feature-icon {
+            font-size: 40px;
+            color: #3498db;
+            margin-bottom: 20px;
+        }
+        .feature-card h3 {
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+        /* 品牌专区样式 */
+        .brands-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 30px;
+        }
+        .brand-card {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+        .brand-card:hover {
+            transform: translateY(-5px);
+        }
+        .brand-image {
+            height: 150px;
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #666;
+        }
+        .brand-info {
+            padding: 20px;
+        }
+        .brand-info h3 {
+            margin-bottom: 10px;
+        }
+        /* 车型列表样式 */
+        .models-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+        }
+        .model-card {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+        .model-card:hover {
+            transform: translateY(-5px);
+        }
+        .model-image {
+            height: 180px;
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #666;
+        }
+        .model-info {
+            padding: 20px;
+        }
+        .model-info h3 {
+            margin-bottom: 10px;
+        }
+        .model-info p {
+            color: #666;
+            margin-bottom: 15px;
+        }
+        /* 车型详情样式 */
+        .model-detail {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+        .model-showcase {
+            flex: 1;
+            min-width: 300px;
+        }
+        .model-image-large {
+            height: 300px;
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #666;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .model-specs {
+            flex: 1;
+            min-width: 300px;
+        }
+        .spec-item {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+        }
+        .spec-label {
+            width: 120px;
+            font-weight: bold;
+        }
+        .spec-value {
+            flex: 1;
+        }
+        .model-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        /* 论坛样式 */
+        .forum-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .forum-filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .forum-post {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        .post-author {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .author-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-weight: bold;
+        }
+        .post-meta {
+            color: #666;
+            font-size: 14px;
+        }
+        .post-content {
+            margin-bottom: 15px;
+        }
+        .post-actions {
+            display: flex;
+            gap: 15px;
+            color: #666;
+            font-size: 14px;
+        }
+        .post-action {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+        .post-action:hover {
+            color: #3498db;
+        }
+        .pinned-tag {
+            background-color: #e74c3c;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-right: 10px;
+        }
+        /* 虚拟现实专栏样式 */
+        .ar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            max-width: 400px;
+        }
+        .search-bar input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        /* 个人中心样式 */
+        .profile-header {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 30px;
+            align-items: center;
+        }
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: #3498db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 36px;
+            font-weight: bold;
+        }
+        .profile-info h2 {
+            margin-bottom: 10px;
+        }
+        .profile-info p {
+            color: #666;
+        }
+        .profile-tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+        .profile-tab {
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        .profile-tab.active {
+            border-bottom: 2px solid #3498db;
+            color: #3498db;
+        }
+        .collection-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 50px 0;
+            color: #666;
+        }
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #ddd;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <a href="#" class="logo">3D汽车</a>
+            <nav class="nav">
+                <a href="#" class="active">首页</a>
+                <a href="#">品牌专区</a>
+                <a href="#">虚拟现实</a>
+                <a href="#">论坛交流</a>
+            </nav>
+            <div class="user-actions">
+                <div class="user-avatar">U</div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="section">
+            <h2 class="section-title">原型图展示</h2>
+            <div class="prototype-nav">
+                <button class="active" onclick="showPrototype('home')">首页</button>
+                <button onclick="showPrototype('brands')">品牌专区</button>
+                <button onclick="showPrototype('brand-detail')">品牌详情</button>
+                <button onclick="showPrototype('model-detail')">车型详情</button>
+                <button onclick="showPrototype('ar')">虚拟现实专栏</button>
+                <button onclick="showPrototype('forum')">论坛交流</button>
+                <button onclick="showPrototype('profile')">个人中心</button>
+            </div>
+
+            <!-- 首页原型 -->
+            <div id="home" class="prototype-content active">
+                <div class="hero">
+                    <h1>探索汽车的未来</h1>
+                    <p>通过3D技术和虚拟现实，体验前所未有的汽车展示方式</p>
+                    <button class="btn btn-primary">开始探索</button>
+                </div>
+
+                <div class="features">
+                    <div class="feature-card">
+                        <div class="feature-icon">🔍</div>
+                        <h3>3D展示</h3>
+                        <p>360°全方位展示各类汽车型号，让您足不出户即可感受真实车型的每个细节。</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📱</div>
+                        <h3>AR体验</h3>
+                        <p>创新的增强现实技术，让您能够在真实环境中预览汽车效果，带来身临其境的互动体验。</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">💬</div>
+                        <h3>社区交流</h3>
+                        <p>加入我们的汽车爱好者社区，分享您的用车体验，获取最新的汽车资讯和专业建议。</p>
+                    </div>
+                </div>
+
+                <div class="section-title">热门车型</div>
+                <div class="models-grid">
+                    <div class="model-card">
+                        <div class="model-image">奔驰 C级 图片</div>
+                        <div class="model-info">
+                            <h3>奔驰 C级</h3>
+                            <p>豪华轿车的典范之作</p>
+                            <button class="btn btn-primary">查看详情</button>
+                        </div>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-image">奥迪 A4L 图片</div>
+                        <div class="model-info">
+                            <h3>奥迪 A4L</h3>
+                            <p>科技与优雅的完美结合</p>
+                            <button class="btn btn-primary">查看详情</button>
+                        </div>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-image">奔驰 GLC 图片</div>
+                        <div class="model-info">
+                            <h3>奔驰 GLC</h3>
+                            <p>豪华SUV的新标杆</p>
+                            <button class="btn btn-primary">查看详情</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 品牌专区原型 -->
+            <div id="brands" class="prototype-content">
+                <h2>品牌专区</h2>
+                <p>选择您感兴趣的汽车品牌，探索更多车型</p>
+                <div class="brands-grid">
+                    <div class="brand-card">
+                        <div class="brand-image">奔驰品牌Logo</div>
+                        <div class="brand-info">
+                            <h3>奔驰</h3>
+                            <p>德国豪华汽车品牌，以卓越工艺和创新科技著称</p>
+                        </div>
+                    </div>
+                    <div class="brand-card">
+                        <div class="brand-image">奥迪品牌Logo</div>
+                        <div class="brand-info">
+                            <h3>奥迪</h3>
+                            <p>德国高端汽车制造商，以先进技术和精湛设计闻名</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 品牌详情原型 -->
+            <div id="brand-detail" class="prototype-content">
+                <h2>奔驰车型系列</h2>
+                <p>探索奔驰旗下的豪华车型系列</p>
+                <div class="models-grid">
+                    <div class="model-card">
+                        <div class="model-image">奔驰 C级 图片</div>
+                        <div class="model-info">
+                            <h3>奔驰 C级</h3>
+                            <p>豪华轿车的典范之作</p>
+                            <button class="btn btn-primary">查看详情</button>
+                        </div>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-image">奔驰 E级 图片</div>
+                        <div class="model-info">
+                            <h3>奔驰 E级</h3>
+                            <p>商务精英的首选座驾</p>
+                            <button class="btn btn-primary">查看详情</button>
+                        </div>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-image">奔驰 GLC 图片</div>
+                        <div class="model-info">
+                            <h3>奔驰 GLC</h3>
+                            <p>豪华SUV的新标杆</p>
+                            <button class="btn btn-primary">查看详情</button>
+                        </div>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-image">奔驰 S级 图片</div>
+                        <div class="model-info">
+                            <h3>奔驰 S级</h3>
+                            <p>豪华旗舰轿车</p>
+                            <button class="btn btn-primary">查看详情</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 车型详情原型 -->
+            <div id="model-detail" class="prototype-content">
+                <h2>奔驰 C级</h2>
+                <div class="model-detail">
+                    <div class="model-showcase">
+                        <div class="model-image-large">奔驰 C级 大图展示</div>
+                    </div>
+                    <div class="model-specs">
+                        <h3>车型参数</h3>
+                        <div class="spec-item">
+                            <div class="spec-label">发动机</div>
+                            <div class="spec-value">2.0T 涡轮增压</div>
+                        </div>
+                        <div class="spec-item">
+                            <div class="spec-label">最大功率</div>
+                            <div class="spec-value">184马力</div>
+                        </div>
+                        <div class="spec-item">
+                            <div class="spec-label">最大扭矩</div>
+                            <div class="spec-value">300牛·米</div>
+                        </div>
+                        <div class="spec-item">
+                            <div class="spec-label">变速箱</div>
+                            <div class="spec-value">9速自动变速箱</div>
+                        </div>
+                        <div class="spec-item">
+                            <div class="spec-label">驱动方式</div>
+                            <div class="spec-value">后轮驱动</div>
+                        </div>
+                        <div class="model-actions">
+                            <button class="btn btn-primary">详情</button>
+                            <button class="btn btn-secondary">虚拟展示</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 虚拟现实专栏原型 -->
+            <div id="ar" class="prototype-content">
+                <div class="ar-header">
+                    <h2>虚拟现实专栏</h2>
+                    <div class="search-bar">
+                        <input type="text" placeholder="搜索车型...">
+                        <button class="btn btn-primary">搜索</button>
+                    </div>
+                </div>
+                <p>体验3D虚拟展示，探索汽车的每一个细节</p>
+                <div class="models-grid">
+                    <div class="model-card">
+                        <div class="model-image">奔驰 C级 3D模型</div>
+                        <div class="model-info">
+                            <h3>奔驰 C级</h3>
+                            <p>豪华轿车的典范之作</p>
+                            <button class="btn btn-primary">3D展示</button>
+                        </div>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-image">奥迪 A4L 3D模型</div>
+                        <div class="model-info">
+                            <h3>奥迪 A4L</h3>
+                            <p>科技与优雅的完美结合</p>
+                            <button class="btn btn-primary">3D展示</button>
+                        </div>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-image">奔驰 GLC 3D模型</div>
+                        <div class="model-info">
+                            <h3>奔驰 GLC</h3>
+                            <p>豪华SUV的新标杆</p>
+                            <button class="btn btn-primary">3D展示</button>
+                        </div>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-image">奥迪 Q5L 3D模型</div>
+                        <div class="model-info">
+                            <h3>奥迪 Q5L</h3>
+                            <p>豪华中型SUV</p>
+                            <button class="btn btn-primary">3D展示</button>
+                        </div>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-image">奔驰 E级 3D模型</div>
+                        <div class="model-info">
+                            <h3>奔驰 E级</h3>
+                            <p>商务精英的首选座驾</p>
+                            <button class="btn btn-primary">3D展示</button>
+                        </div>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-image">奥迪 A6L 3D模型</div>
+                        <div class="model-info">
+                            <h3>奥迪 A6L</h3>
+                            <p>豪华行政轿车</p>
+                            <button class="btn btn-primary">3D展示</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 论坛交流原型 -->
+            <div id="forum" class="prototype-content">
+                <div class="forum-header">
+                    <h2>论坛交流</h2>
+                    <button class="btn btn-primary">发布帖子</button>
+                </div>
+                <div class="forum-filters">
+                    <button class="btn btn-secondary">最新</button>
+                    <button class="btn btn-secondary">热门</button>
+                    <button class="btn btn-secondary">精华</button>
+                </div>
+                <div class="forum-posts">
+                    <div class="forum-post">
+                        <div class="post-header">
+                            <div class="post-author">
+                                <span class="pinned-tag">置顶</span>
+                                <div class="author-avatar">A</div>
+                                <div>
+                                    <div>管理员</div>
+                                    <div class="post-meta">2023-05-15 10:30</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            <h3>欢迎来到3D汽车展示平台论坛</h3>
+                            <p>这里是汽车爱好者的交流天地，欢迎分享您的用车体验和对各种车型的看法。请遵守论坛规则，文明发言。</p>
+                        </div>
+                        <div class="post-actions">
+                            <div class="post-action">👍 点赞 (24)</div>
+                            <div class="post-action">💬 评论 (8)</div>
+                            <div class="post-action">🔖 收藏</div>
+                        </div>
+                    </div>
+                    <div class="forum-post">
+                        <div class="post-header">
+                            <div class="post-author">
+                                <div class="author-avatar">U</div>
+                                <div>
+                                    <div>用户123</div>
+                                    <div class="post-meta">2023-05-20 15:45</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            <h3>奔驰C级和奥迪A4L选哪个更好？</h3>
+                            <p>最近打算换车，纠结于奔驰C级和奥迪A4L之间，两款车各有特点。奔驰C级外观更运动，内饰更豪华；奥迪A4L科技感更强，操控更精准。大家有什么建议吗？</p>
+                        </div>
+                        <div class="post-actions">
+                            <div class="post-action">👍 点赞 (15)</div>
+                            <div class="post-action">💬 评论 (6)</div>
+                            <div class="post-action">🔖 收藏</div>
+                        </div>
+                    </div>
+                    <div class="forum-post">
+                        <div class="post-header">
+                            <div class="post-author">
+                                <div class="author-avatar">L</div>
+                                <div>
+                                    <div>李先生</div>
+                                    <div class="post-meta">2023-05-22 09:15</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            <h3>分享我的奥迪A6L用车体验</h3>
+                            <p>入手奥迪A6L已经半年了，整体感受非常不错。空间宽敞，科技配置丰富，驾驶质感也很棒。特别是那块大尺寸中控屏，操作起来非常流畅，导航和音乐系统都很好用。</p>
+                        </div>
+                        <div class="post-actions">
+                            <div class="post-action">👍 点赞 (8)</div>
+                            <div class="post-action">💬 评论 (3)</div>
+                            <div class="post-action">🔖 收藏</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 个人中心原型 -->
+            <div id="profile" class="prototype-content">
+                <div class="profile-header">
+                    <div class="profile-avatar">U</div>
+                    <div class="profile-info">
+                        <h2>用户名</h2>
+                        <p>注册时间：2023-01-15</p>
+                        <p>邮箱：user@example.com</p>
+                    </div>
+                </div>
+
+                <div class="profile-tabs">
+                    <div class="profile-tab active" onclick="showProfileTab('collections')">我的收藏</div>
+                    <div class="profile-tab" onclick="showProfileTab('posts')">我的帖子</div>
+                    <div class="profile-tab" onclick="showProfileTab('comments')">我的评论</div>
+                </div>
+
+                <div id="collections" class="profile-tab-content active">
+                    <h3>我收藏的车型</h3>
+                    <div class="collection-grid">
+                        <div class="model-card">
+                            <div class="model-image">奔驰 C级 图片</div>
+                            <div class="model-info">
+                                <h3>奔驰 C级</h3>
+                                <p>豪华轿车的典范之作</p>
+                                <button class="btn btn-primary">查看详情</button>
+                            </div>
+                        </div>
+                        <div class="model-card">
+                            <div class="model-image">奥迪 A4L 图片</div>
+                            <div class="model-info">
+                                <h3>奥迪 A4L</h3>
+                                <p>科技与优雅的完美结合</p>
+                                <button class="btn btn-primary">查看详情</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="posts" class="profile-tab-content" style="display: none;">
+                    <h3>我发布的帖子</h3>
+                    <div class="forum-posts">
+                        <div class="forum-post">
+                            <div class="post-header">
+                                <div class="post-author">
+                                    <div class="author-avatar">U</div>
+                                    <div>
+                                        <div>用户名</div>
+                                        <div class="post-meta">2023-05-20 15:45</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="post-content">
+                                <h3>奔驰C级和奥迪A4L选哪个更好？</h3>
+                                <p>最近打算换车，纠结于奔驰C级和奥迪A4L之间，两款车各有特点。奔驰C级外观更运动，内饰更豪华；奥迪A4L科技感更强，操控更精准。大家有什么建议吗？</p>
+                            </div>
+                            <div class="post-actions">
+                                <div class="post-action">👍 点赞 (15)</div>
+                                <div class="post-action">💬 评论 (6)</div>
+                                <div class="post-action">🔖 收藏</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="comments" class="profile-tab-content" style="display: none;">
+                    <h3>我的评论</h3>
+                    <div class="forum-posts">
+                        <div class="forum-post">
+                            <div class="post-header">
+                                <div class="post-author">
+                                    <div class="author-avatar">U</div>
+                                    <div>
+                                        <div>用户名</div>
+                                        <div class="post-meta">2023-05-21 10:30</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="post-content">
+                                <p>我觉得奔驰C级的内饰做工更精致，座椅也更舒适。如果更注重乘坐舒适性，可以考虑C级。</p>
+                                <div class="post-meta">评论于：《奔驰C级和奥迪A4L选哪个更好？》</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showPrototype(id) {
+            // 隐藏所有原型内容
+            const contents = document.querySelectorAll('.prototype-content');
+            contents.forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // 显示选中的原型内容
+            document.getElementById(id).classList.add('active');
+            
+            // 更新按钮状态
+            const buttons = document.querySelectorAll('.prototype-nav button');
+            buttons.forEach(button => {
+                button.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+        
+        function showProfileTab(id) {
+            // 隐藏所有标签内容
+            const contents = document.querySelectorAll('.profile-tab-content');
+            contents.forEach(content => {
+                content.style.display = 'none';
+            });
+            
+            // 显示选中的标签内容
+            document.getElementById(id).style.display = 'block';
+            
+            // 更新标签状态
+            const tabs = document.querySelectorAll('.profile-tab');
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>

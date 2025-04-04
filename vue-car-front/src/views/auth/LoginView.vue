@@ -79,7 +79,8 @@ const form = reactive({
 const checkUsernameExist = async () => {
   if (form.username && form.username.length >= 3) {
     const isAvailable = await userStore.checkUsername(form.username)
-    if (!isAvailable) {
+    
+    if (isAvailable) {
       ElMessage.warning('该用户名已被使用')
       return false
     }

@@ -2,6 +2,7 @@ package com.lihua.car.controller;
 
 import com.lihua.car.dto.CarUserDTO;
 import com.lihua.car.service.CarUserService;
+import com.lihua.car.vo.CarLoginResult;
 import com.lihua.model.web.BaseController;
 import com.lihua.enums.ResultCodeEnum;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,14 +1,10 @@
 import request from './request'
 
-// 获取环境变量中的API前缀和业务前缀
-const apiPrefix = import.meta.env.VITE_API_PREFIX || '/api'
-const carPrefix = import.meta.env.VITE_API_CAR_PREFIX || '/car'
-
 export const userApi = {
   // 用户登录
   login(data) {
     return request({
-      url: `${apiPrefix}${carPrefix}/user/login`,
+      url: `/car/user/login`,
       method: 'post',
       data
     })
@@ -17,7 +13,7 @@ export const userApi = {
   // 用户注册
   register(data) {
     return request({
-      url: `${apiPrefix}${carPrefix}/user/register`,
+      url: `/car/user/register`,
       method: 'post',
       data
     })
@@ -26,7 +22,7 @@ export const userApi = {
   // 获取用户信息
   getUserInfo() {
     return request({
-      url: `${apiPrefix}${carPrefix}/user/info`,
+      url: `/car/user/info`,
       method: 'get'
     })
   },
@@ -34,7 +30,7 @@ export const userApi = {
   // 退出登录
   logout() {
     return request({
-      url: `${apiPrefix}${carPrefix}/user/logout`,
+      url: `/car/user/logout`,
       method: 'post'
     })
   },
@@ -42,7 +38,7 @@ export const userApi = {
   // 验证用户名是否存在
   checkUsername(username) {
     return request({
-      url: `${apiPrefix}${carPrefix}/user/check/${username}`,
+      url: `/car/user/check/${username}`,
       method: 'get'
     })
   },
@@ -50,7 +46,7 @@ export const userApi = {
   // 验证滑块验证码
   verifySlideCode(slideVerifyFlag) {
     return request({
-      url: `${apiPrefix}${carPrefix}/user/verify/${slideVerifyFlag}`,
+      url: `/car/user/verify/${slideVerifyFlag}`,
       method: 'get'
     })
   }

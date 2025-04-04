@@ -61,7 +61,8 @@ public class SecurityConfig {
                         "system/setting/SignInSetting",                 // 是否开启用户注册
                         "/system/checkUserName/**",                     // 检查用户名
                         "/system/register/**",                          // 注册
-                        "/druid/**"                                     // druid数据库监控
+                        "/druid/**",
+                        "/car/**"
                 ).permitAll()
                 .anyRequest().authenticated());
 

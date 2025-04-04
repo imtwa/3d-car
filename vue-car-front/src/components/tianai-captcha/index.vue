@@ -9,7 +9,7 @@
 import { ref } from 'vue'
 
 // 请求url前缀
-const baseURL = import.meta.env.VITE_API_PREFIX || '/api'
+const baseURL = '/api'
 // 是否打开遮罩
 const showMask = ref(false)
 
@@ -84,7 +84,8 @@ const style = {
 const load = () => {
   showMask.value = true
   window.initTAC("tac", captchaConfig, style).then((tac) => {
-    window.tac = tac
+    // 初始化验证码
+    tac.init();
   })
 }
 

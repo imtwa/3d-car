@@ -8,22 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint:prettier": "prettier --check .",
-    "lintfix": "prettier --write --list-different .",
-    "prepare": "husky install",
-    "lint-staged": "lint-staged"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "npm run lint:prettier"
-    }
-  },
-  "lint-staged": {
-    "src/**/*.{js,vue}": [
-      "npm run lintfix"
-    ],
-    "src/**/*.{scss,css}": [
-      "prettier --write"
-    ]
+    "lintfix": "prettier --write --list-different ."
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
@@ -32,7 +17,6 @@
     "dat.gui": "^0.7.9",
     "axios": "^1.8.1",
     "element-plus": "^2.4.4",
-    "mockjs": "^1.1.0",
     "pinia": "^3.0.1",
     "three": "^0.174.0",
     "vue": "^3.5.13",
@@ -45,9 +29,7 @@
     "eslint-config-prettier": "^10.0.2",
     "eslint-plugin-prettier": "^5.2.3",
     "eslint-plugin-vue": "^9.32.0",
-    "husky": "^8.0.0",
     "install": "^0.13.0",
-    "lint-staged": "^15.2.10",
     "postcss": "^8.4.35",
     "prettier": "^3.5.3",
     "sass": "^1.85.1",

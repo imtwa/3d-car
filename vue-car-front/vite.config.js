@@ -1,45 +1,52 @@
+import { fileURLToPath, URL } from 'node:url'
+
 import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import path from 'path'
-
+import vueJsx from '@vitejs/plugin-vue-jsx'
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   // 获取请求前缀
-  const env = loadEnv(mode, process.cwd())
-  const baseApi = env.VITE_API_PREFIX
-  
+  // const env = loadEnv(mode, process.cwd());
+  // const baseApi = env.VITE_APP_BASE_API
+
   return {
-    plugins: [vue()], // Vue 插件支持
+    plugins: [vue(), vueJsx()],
     assetsInclude: ['**/*.glb', '**/*.FBX', '**/*.fbx', '**/*.hdr', '**/*.gltf'],
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, './src')
+        '@': fileURLToPath(new URL('./src', import.meta.url))
+      }
+    },
+    server: {
+      port: 8082, // 后台管理系统端口
+      host: true,
+      open: true,
+      proxy: {
+        '/api': {
+          target: 'http://localhost:8080/',
+          changeOrigin: true,
+          rewrite: p => p.replace(/^\/api/, '')
+        }
       }
     },
     css: {
       preprocessorOptions: {
-        scss: {
-          additionalData: `@use "@/assets/styles/variables.scss" as *;`
-        }
-      }
-    },
-    server: {
-      port: 8082, // 前台服务器端口
-      open: true, // 自动打开浏览器
-      proxy: {
-        [baseApi]: {
-          target: 'http://localhost:8080',
-          changeOrigin: true,
-          rewrite: p => p.replace(baseApi, '')
+        less: {
+          javascriptEnabled: true
         }
       }
     },
     build: {
-      rollupOptions: {
-        input: {
-          main: path.resolve(__dirname, 'index.html')
+      outDir: 'dist', // 输出目录
+      target: 'esnext', // js格式
+      terserOptions: {
+        compress: {
+          drop_console: true, // 生产环境去掉 console
+          drop_debugger: true, // 生产环境去掉 debugger
+          dead_code: true // 删除无法访问的代码
         }
-      }
+      },
+      chunkSizeWarningLimit: 2000 // 代码块超过2000 bytes时vite发出警告
     }
   }
 })

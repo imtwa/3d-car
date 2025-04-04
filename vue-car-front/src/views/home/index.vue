@@ -1,32 +1,33 @@
 <template>
   <div class="home">
     <div class="home-content">
-      <div class="hero-section">
-        <h1>欢迎来到3D汽车展示平台</h1>
-        <p class="subtitle">体验前所未有的虚拟汽车展示体验</p>
+      <!-- 英雄区域 -->
+      <div class="hero">
+        <h1>探索汽车的未来</h1>
+        <p>通过3D技术和虚拟现实，体验前所未有的汽车展示方式</p>
+        <el-button type="primary" size="large" @click="router.push('/brands')">开始探索</el-button>
       </div>
 
+      <!-- 特色功能区域 -->
       <div class="features">
         <el-row :gutter="40">
-          <el-col :span="8">
+          <el-col :xs="24" :sm="8">
             <div class="feature-card">
-              <el-icon :size="50" color="#409EFF"><View /></el-icon>
+              <div class="feature-icon">🔍</div>
               <h3>3D展示</h3>
-              <p>
-                通过先进的3D技术，360°全方位展示各类汽车型号，让您足不出户即可感受真实车型的每个细节。
-              </p>
+              <p>360°全方位展示各类汽车型号，让您足不出户即可感受真实车型的每个细节。</p>
             </div>
           </el-col>
-          <el-col :span="8">
+          <el-col :xs="24" :sm="8">
             <div class="feature-card">
-              <el-icon :size="50" color="#409EFF"><Camera /></el-icon>
+              <div class="feature-icon">📱</div>
               <h3>AR体验</h3>
               <p>创新的增强现实技术，让您能够在真实环境中预览汽车效果，带来身临其境的互动体验。</p>
             </div>
           </el-col>
-          <el-col :span="8">
+          <el-col :xs="24" :sm="8">
             <div class="feature-card">
-              <el-icon :size="50" color="#409EFF"><ChatDotRound /></el-icon>
+              <div class="feature-icon">💬</div>
               <h3>社区交流</h3>
               <p>加入我们的汽车爱好者社区，分享您的用车体验，获取最新的汽车资讯和专业建议。</p>
             </div>
@@ -34,15 +35,21 @@
         </el-row>
       </div>
 
-      <div class="cta-section">
-        <h2>开启您的虚拟汽车之旅</h2>
-        <p>立即体验我们的创新功能，探索心仪的车型</p>
-        <div class="cta-buttons">
-          <el-button type="primary" size="large" @click="router.push('/brands')">
-            浏览车型
-          </el-button>
-          <el-button size="large" @click="router.push('/ar')"> AR体验 </el-button>
-        </div>
+      <!-- 热门车型区域 -->
+      <div class="hot-models">
+        <h2 class="section-title">热门车型</h2>
+        <el-carousel :interval="4000" type="card" height="320px" indicator-position="outside" arrow="always">
+          <el-carousel-item v-for="(item, index) in hotModels" :key="index">
+            <div class="model-card carousel-card">
+              <div class="model-image">{{ item.image }}</div>
+              <div class="model-info">
+                <!-- <h3>{{ item.name }}</h3>
+                <p>{{ item.description }}</p> -->
+                <!-- <el-button type="primary" @click="router.push(item.link)">查看详情</el-button> -->
+              </div>
+            </div>
+          </el-carousel-item>
+        </el-carousel>
       </div>
     </div>
   </div>
@@ -50,136 +57,203 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
-import { View, Camera, ChatDotRound } from '@element-plus/icons-vue'
+import { ref } from 'vue'
 
 const router = useRouter()
+
+const hotModels = ref([
+  {
+    name: '奔驰 C级',
+    description: '豪华轿车的典范之作',
+    image: '奔驰 C级 图片',
+    link: '/models/1'
+  },
+  {
+    name: '奥迪 A4L',
+    description: '科技与优雅的完美结合',
+    image: '奥迪 A4L 图片',
+    link: '/models/2'
+  },
+  {
+    name: '奔驰 GLC',
+    description: '豪华SUV的新标杆',
+    image: '奔驰 GLC 图片',
+    link: '/models/3'
+  }
+])
 </script>
 
 <style lang="scss" scoped>
 .home {
   min-height: 100vh;
   margin: 0 auto;
-  background-image: url('@/assets/images/car-bg.jpg');
-  background-size: cover;
-  background-position: center;
+  background-color: #f5f5f5;
+  color: #333;
+  line-height: 1.6;
+
   .home-content {
-    text-align: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
 
-    .hero-section {
-      padding: 60px 20px;
-      position: relative;
-
-      &::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 1;
-      }
+    // 英雄区域样式
+    .hero {
+      background-image:
+        linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+      background-size: cover;
+      background-position: center;
+      color: white;
+      text-align: center;
+      padding: 100px 20px;
+      border-radius: 8px;
+      margin-bottom: 40px;
 
       h1 {
-        position: relative;
-        z-index: 2;
-        font-size: 2.5rem;
-        color: #ffffff;
+        font-size: 48px;
         margin-bottom: 20px;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
       }
 
-      .subtitle {
-        position: relative;
-        z-index: 2;
-        font-size: 1.2rem;
-        color: #e0e0e0;
+      p {
+        font-size: 20px;
         margin-bottom: 30px;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .el-button {
+        padding: 12px 24px;
+        font-size: 16px;
+        &.el-button--primary {
+          background-color: #3498db;
+          border-color: #3498db;
+          &:hover {
+            background-color: #2980b9;
+            border-color: #2980b9;
+          }
+        }
       }
     }
 
+    // 特色功能区域样式
     .features {
-      margin-bottom: 60px;
-      position: relative;
-      z-index: 2;
-      background: rgba(0, 0, 0, 0.5);
-      padding: 40px 60px;
+      margin: 40px 0;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      padding: 30px;
 
       .feature-card {
+        background-color: white;
+        border-radius: 8px;
         padding: 30px;
         text-align: center;
-        // background: rgba(0, 0, 0, 0.5);
-        border-radius: 8px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         transition: transform 0.3s;
 
         &:hover {
           transform: translateY(-5px);
-          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .feature-icon {
+          font-size: 40px;
+          color: #3498db;
+          margin-bottom: 20px;
         }
 
         h3 {
-          margin: 20px 0;
-          color: #a6b3cd;
+          font-size: 20px;
+          margin-bottom: 15px;
+          color: #333;
         }
 
         p {
-          color: #e0e0e0;
+          color: #666;
           line-height: 1.6;
-        }
-
-        .el-icon {
-          color: #00d1b2;
         }
       }
     }
 
-    .cta-section {
-      padding: 60px 20px;
-      position: relative;
+    // 热门车型区域样式
+    .hot-models {
+      margin: 40px 0;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      padding: 30px;
 
-      &::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.6);
-        z-index: 1;
-      }
-
-      h2 {
-        position: relative;
-        z-index: 2;
-        font-size: 2rem;
-        color: #ffffff;
+      .section-title {
+        font-size: 24px;
         margin-bottom: 20px;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        color: #333;
+        border-bottom: 2px solid #3498db;
+        padding-bottom: 10px;
       }
 
-      p {
-        position: relative;
-        z-index: 2;
-        color: #e0e0e0;
-        margin-bottom: 30px;
+      // 轮播图样式
+      .el-carousel {
+        margin-top: 30px;
+        
+        .el-carousel__indicators {
+          margin-top: 15px;
+        }
+
+        .el-carousel__arrow {
+          background-color: rgba(52, 152, 219, 0.7);
+          &:hover {
+            background-color: rgba(41, 128, 185, 0.9);
+          }
+        }
       }
 
-      .cta-buttons {
-        position: relative;
-        z-index: 2;
-        display: flex;
-        gap: 20px;
-        justify-content: center;
+      .carousel-card {
+        height: 100%;
+        margin-bottom: 0;
+      }
 
-        .el-button {
-          padding: 15px 30px;
-          &.el-button--primary {
-            background: #00d1b2;
-            border-color: #00d1b2;
+      .model-card {
+        background-color: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s;
+        cursor: pointer;
+        margin-bottom: 20px;
+
+        &:hover {
+          transform: translateY(-5px);
+        }
+
+        .model-image {
+          height: 300px;
+          background-color: #f0f0f0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 18px;
+          color: #666;
+        }
+
+        .model-info {
+          padding: 20px;
+
+          h3 {
+            margin-bottom: 10px;
+            color: #333;
+          }
+
+          p {
+            color: #666;
+            margin-bottom: 15px;
+          }
+
+          .el-button {
+            background-color: #3498db;
+            border-color: #3498db;
             &:hover {
-              background: #00bfa5;
-              border-color: #00bfa5;
+              background-color: #2980b9;
+              border-color: #2980b9;
             }
           }
         }

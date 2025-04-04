@@ -3,6 +3,7 @@ package com.lihua.car.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lihua.car.dto.CarUserDTO;
 import com.lihua.car.entity.CarUser;
+import com.lihua.car.vo.CarLoginResult;
 import com.lihua.enums.ResultCodeEnum;
 
 /**
@@ -27,9 +28,9 @@ public interface CarUserService extends IService<CarUser> {
      * 用户登录
      *
      * @param carUserDTO 登录信息
-     * @return 登录结果
+     * @return 登录结果，包含token和用户信息
      */
-    String login(CarUserDTO carUserDTO);
+    CarLoginResult login(CarUserDTO carUserDTO);
 
     /**
      * 验证用户名是否存在

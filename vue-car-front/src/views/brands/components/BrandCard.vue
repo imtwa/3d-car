@@ -6,13 +6,7 @@
     <div class="brand-info">
       <h3>{{ brand.name }}</h3>
       <p>{{ brand.description }}</p>
-    </div>
-    <div class="model-preview">
-      <div class="model-item" v-for="model in brand.models.slice(0, 2)" :key="model.id">
-        <img :src="model.image" :alt="model.name" />
-        <span class="model-name">{{ model.name }}</span>
-        <span class="model-price">{{ model.price }}</span>
-      </div>
+      <el-button type="primary" class="view-more-btn">查看更多</el-button>
     </div>
   </div>
 </template>
@@ -35,6 +29,9 @@ defineProps({
   transition: all 0.3s;
   cursor: pointer;
   margin-bottom: 30px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 
   &:hover {
     transform: translateY(-5px);
@@ -42,60 +39,44 @@ defineProps({
   }
 
   .brand-logo {
-    padding: 20px;
+    padding: 40px;
     background: #f5f7fa;
     text-align: center;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
     img {
-      height: 60px;
+      height: 120px;
+      max-width: 80%;
       object-fit: contain;
     }
   }
 
   .brand-info {
-    padding: 20px;
+    padding: 30px;
     text-align: center;
 
     h3 {
-      margin: 0 0 10px;
+      margin: 0 0 15px;
       color: #303133;
+      font-size: 1.8rem;
+      font-weight: 600;
     }
 
     p {
-      color: #909399;
-      font-size: 14px;
-      line-height: 1.4;
+      color: #606266;
+      font-size: 1rem;
+      line-height: 1.6;
+      margin-bottom: 20px;
+      min-height: 60px;
     }
-  }
-
-  .model-preview {
-    padding: 15px;
-    background: #f8f9fb;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-
-    .model-item {
-      text-align: center;
-
-      img {
-        width: 100%;
-        height: 80px;
-        object-fit: contain;
-      }
-
-      .model-name {
-        display: block;
-        color: #303133;
-        font-size: 14px;
-        margin-top: 5px;
-      }
-
-      .model-price {
-        display: block;
-        color: #f56c6c;
-        font-size: 12px;
-      }
+    
+    .view-more-btn {
+      margin-top: 10px;
+      width: 120px;
+      font-size: 1rem;
     }
   }
 }
