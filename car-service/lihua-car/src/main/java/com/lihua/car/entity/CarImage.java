@@ -1,5 +1,7 @@
 package com.lihua.car.entity;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -41,6 +43,11 @@ public class CarImage implements Serializable {
      * 图片类型（0首图 1详情图）
      */
     private String imageType;
+    
+    /**
+     * 原始文件ID，关联sys_attachment表
+     */
+    private Long attachmentId;
 
     /**
      * 排序号
@@ -66,5 +73,4 @@ public class CarImage implements Serializable {
      * 更新时间
      */
     private LocalDateTime updateTime;
-
 }

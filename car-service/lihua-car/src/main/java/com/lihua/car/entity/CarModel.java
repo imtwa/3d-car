@@ -1,11 +1,18 @@
 package com.lihua.car.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -20,11 +27,25 @@ import java.time.LocalDateTime;
 @Accessors(chain = true)
 public class CarModel implements Serializable {
 
+    @TableField(exist = false)
+    private List<String> images;
+    
+    @TableField(exist = false)
+    private List<String> imageIds;
+
+    @TableField(exist = false)
+    private String coverImage;
+    
+    @TableField(exist = false)
+    private String coverImageId;
+
     private static final long serialVersionUID = 1L;
 
     /**
      * 车型ID
      */
+    @TableId
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
 
     /**
@@ -51,6 +72,12 @@ public class CarModel implements Serializable {
      * three.js模型地址
      */
     private String modelUrl;
+    
+    /**
+     * 3D模型文件附件ID
+     */
+    @JsonSerialize(using = ToStringSerializer.class)
+    private Long modelAttachmentId;
 
     /**
      * 汽车参数(JSON格式)
@@ -81,5 +108,10 @@ public class CarModel implements Serializable {
      * 品牌对象（非数据库字段）
      */
     private transient CarBrand brand;
-
+    
+    /**
+     * 品牌名称（非数据库字段）
+     */
+    @TableField(exist = false)
+    private String brandName;
 }

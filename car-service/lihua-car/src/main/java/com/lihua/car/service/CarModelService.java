@@ -1,7 +1,10 @@
 package com.lihua.car.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.lihua.car.dto.CarModelDTO;
+import com.lihua.car.entity.CarBrand;
 import com.lihua.car.entity.CarModel;
+import com.lihua.model.attachment.AttachmentStreamAndInfoModel;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -19,10 +22,10 @@ public interface CarModelService {
     /**
      * 查询车型列表
      *
-     * @param model 车型查询条件
+     * @param dto 车型查询条件
      * @return 车型列表
      */
-    List<CarModel> selectModelList(CarModel model);
+    IPage<? extends CarModel> queryPage(CarModelDTO dto);
 
     /**
      * 根据ID查询车型
@@ -54,7 +57,7 @@ public interface CarModelService {
      * @param model 车型信息
      * @return 结果
      */
-    int insertModel(CarModel model);
+    boolean insertModel(CarModel model);
 
     /**
      * 修改车型
@@ -87,12 +90,4 @@ public interface CarModelService {
      * @return 结果
      */
     int changeStatus(CarModelDTO carModelDTO);
-    
-    /**
-     * 上传车型3D模型文件
-     *
-     * @param file 模型文件
-     * @return 模型文件URL
-     */
-    String uploadModel(MultipartFile file);
 }

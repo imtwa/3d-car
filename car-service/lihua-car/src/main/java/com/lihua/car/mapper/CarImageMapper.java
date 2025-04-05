@@ -17,6 +17,8 @@ import java.util.List;
  */
 @Mapper
 public interface CarImageMapper extends BaseMapper<CarImage> {
+    
+    void insertBatch(@Param("list") List<CarImage> imageList);
 
     /**
      * 查询图片列表

@@ -9,6 +9,7 @@ CREATE TABLE `car_model` (
   `description` varchar(2000) DEFAULT NULL COMMENT '车型简介',
   `price` varchar(50) DEFAULT NULL COMMENT '售价范围',
   `model_url` varchar(500) DEFAULT NULL COMMENT 'three.js模型地址',
+  `model_attachment_id` bigint DEFAULT NULL COMMENT '3D模型文件附件ID',
   `parameters` text DEFAULT NULL COMMENT '汽车参数(JSON格式)',
   `status` char(1) DEFAULT '0' COMMENT '状态（0正常 1停用）',
   `del_flag` char(1) DEFAULT '0' COMMENT '删除标志（0代表存在 1代表删除）',

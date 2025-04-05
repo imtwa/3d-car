@@ -7,6 +7,7 @@ CREATE TABLE `car_image` (
   `model_id` bigint NOT NULL COMMENT '所属车型ID',
   `image_url` varchar(500) NOT NULL COMMENT '图片地址',
   `image_type` char(1) NOT NULL COMMENT '图片类型（0首图 1详情图）',
+  `attachment_id` bigint DEFAULT NULL COMMENT '原始文件ID，关联sys_attachment表',
   `sort` int DEFAULT 0 COMMENT '排序号',
   `status` char(1) DEFAULT '0' COMMENT '状态（0正常 1停用）',
   `del_flag` char(1) DEFAULT '0' COMMENT '删除标志（0代表存在 1代表删除）',
