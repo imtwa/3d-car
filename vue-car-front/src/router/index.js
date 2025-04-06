@@ -20,8 +20,12 @@ const routes = [
       {
         path: 'brands/:id',
         name: 'BrandDetail',
-        component: () => import('@/views/brands/BrandDetailView.vue'),
-        meta: { requiresAuth: true }
+        component: () => import('@/views/brands/BrandDetailView.vue')
+      },
+      {
+        path: 'cars/:id',
+        name: 'CarDetail',
+        component: () => import('@/views/brands/CarDetailView.vue')
       },
       {
         path: 'ar',

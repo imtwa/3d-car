@@ -48,11 +48,6 @@ public class CarModelDTO extends BaseDTO implements Serializable {
     private String price;
 
     /**
-     * three.js模型地址
-     */
-    private String modelUrl;
-
-    /**
      * 汽车参数(JSON格式)
      */
     private String parameters;

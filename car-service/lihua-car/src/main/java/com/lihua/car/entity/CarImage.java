@@ -33,11 +33,6 @@ public class CarImage implements Serializable {
      * 所属车型ID
      */
     private Long modelId;
-    
-    /**
-     * 图片地址
-     */
-    private String imageUrl;
 
     /**
      * 图片类型（0首图 1详情图）

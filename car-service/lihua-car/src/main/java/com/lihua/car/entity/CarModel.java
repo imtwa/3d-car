@@ -28,13 +28,7 @@ import java.util.Map;
 public class CarModel implements Serializable {
 
     @TableField(exist = false)
-    private List<String> images;
-    
-    @TableField(exist = false)
     private List<String> imageIds;
-
-    @TableField(exist = false)
-    private String coverImage;
     
     @TableField(exist = false)
     private String coverImageId;
@@ -68,11 +62,6 @@ public class CarModel implements Serializable {
      */
     private String price;
 
-    /**
-     * three.js模型地址
-     */
-    private String modelUrl;
-    
     /**
      * 3D模型文件附件ID
      */

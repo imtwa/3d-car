@@ -10,12 +10,12 @@ const request = axios.create({
 // 请求拦截器
 request.interceptors.request.use(
   config => {
-    const token = localStorage.getItem('token')
-    if (token) {
-      // 确保token格式正确，Spring Security默认需要Bearer前缀
-      // 检查token是否已经包含Bearer前缀，如果没有则添加
-      config.headers.Authorization = token.startsWith('Bearer ') ? token : `Bearer ${token}`
-    }
+    // const token = localStorage.getItem('token')
+    // if (token) {
+    //   // 确保token格式正确，Spring Security默认需要Bearer前缀
+    //   // 检查token是否已经包含Bearer前缀，如果没有则添加
+    //   config.headers.Authorization = token.startsWith('Bearer ') ? token : `Bearer ${token}`
+    // }
     return config
   },
   error => {

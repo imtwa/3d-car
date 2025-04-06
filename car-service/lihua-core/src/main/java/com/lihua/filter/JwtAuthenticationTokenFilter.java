@@ -33,6 +33,7 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
 
         if (StringUtils.hasText(token)) {
             LoginUser loginUser = LoginUserManager.getLoginUser(token);
+
             if (loginUser != null) {
                 // 将用户信息存入上下文
                 SecurityContextHolder
@@ -43,7 +44,8 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
                                 loginUser.getPermissionList().stream().map(SimpleGrantedAuthority::new).toList()));
                 // 判断过期时间进行重新缓存
                 LoginUserManager.verifyLoginUserCache();
-            } else {
+            }
+            else {
                 throw new ServletException("认证信息过期失效");
             }
         }

@@ -13,14 +13,12 @@ import com.lihua.car.mapper.CarBrandMapper;
 import com.lihua.car.mapper.CarImageMapper;
 import com.lihua.car.mapper.CarModelMapper;
 import com.lihua.car.service.CarModelService;
-import com.lihua.config.LihuaConfig;
-import com.lihua.entity.system.SysAttachment;
 
-import com.lihua.mapper.system.SysAttachmentMapper;
-import com.lihua.service.system.attachment.impl.SysAttachmentServiceImpl;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
@@ -36,6 +34,7 @@ import java.util.stream.Collectors;
  * @author lihua
  * @since 2023-07-01
  */
+@Slf4j
 @Service
 public class CarModelServiceImpl extends ServiceImpl<CarModelMapper, CarModel> implements CarModelService {
 
@@ -48,9 +47,6 @@ public class CarModelServiceImpl extends ServiceImpl<CarModelMapper, CarModel> i
     @Autowired
     private CarImageMapper imageMapper;
 
-    @Autowired
-    private SysAttachmentServiceImpl attachmentService;
-
     /**
      * 查询车型列表
      *
@@ -61,26 +57,26 @@ public class CarModelServiceImpl extends ServiceImpl<CarModelMapper, CarModel> i
     public IPage<? extends CarModel> queryPage(CarModelDTO dto) {
         IPage<CarModel> page = new Page<>(dto.getPageNum(), dto.getPageSize());
         com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<CarModel> queryWrapper = new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
-        
+
         // 添加品牌ID查询条件
         if (dto.getBrandId() != null) {
             queryWrapper.eq(CarModel::getBrandId, dto.getBrandId());
         }
-        
+
         // 添加状态查询条件
         if (StringUtils.hasText(dto.getStatus())) {
             queryWrapper.eq(CarModel::getStatus, dto.getStatus());
         }
-        
+
         // 添加删除标志条件，只查询未删除的记录
         queryWrapper.eq(CarModel::getDelFlag, "0");
-        
+
         // 按创建时间降序排序
         queryWrapper.orderByDesc(CarModel::getCreateTime);
-        
+
         // 查询车型列表
         IPage<CarModel> resultPage = this.page(page, queryWrapper);
-        
+
         // 为每个车型关联图片信息和品牌名称
         if (resultPage.getRecords() != null && !resultPage.getRecords().isEmpty()) {
             for (CarModel model : resultPage.getRecords()) {
@@ -91,34 +87,26 @@ public class CarModelServiceImpl extends ServiceImpl<CarModelMapper, CarModel> i
                         model.setBrandName(brand.getName());
                     }
                 }
-                
+
                 // 查询首图（类型为0的图片）
                 com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<CarImage> mainImageWrapper = new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
                 mainImageWrapper.eq(CarImage::getModelId, model.getId())
-                               .eq(CarImage::getImageType, "0")
-                               .eq(CarImage::getDelFlag, "0");
+                        .eq(CarImage::getImageType, "0")
+                        .eq(CarImage::getDelFlag, "0");
                 List<CarImage> mainImages = imageMapper.selectList(mainImageWrapper);
                 if (!mainImages.isEmpty()) {
                     CarImage mainImage = mainImages.get(0);
-                    // 设置首图URL
-                    model.setCoverImage(mainImage.getImageUrl());
                     // 设置首图ID
                     model.setCoverImageId(String.valueOf(mainImage.getAttachmentId()));
                 }
-                
+
                 // 查询详情图（类型为1的图片）
                 com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<CarImage> detailImageWrapper = new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
                 detailImageWrapper.eq(CarImage::getModelId, model.getId())
-                                 .eq(CarImage::getImageType, "1")
-                                 .eq(CarImage::getDelFlag, "0");
+                        .eq(CarImage::getImageType, "1")
+                        .eq(CarImage::getDelFlag, "0");
                 List<CarImage> detailImages = imageMapper.selectList(detailImageWrapper);
                 if (!detailImages.isEmpty()) {
-                    // 设置详情图URL列表
-                    List<String> imageUrls = detailImages.stream()
-                            .map(CarImage::getImageUrl)
-                            .collect(Collectors.toList());
-                    model.setImages(imageUrls);
-                    
                     // 设置详情图ID列表
                     List<String> imageIds = detailImages.stream()
                             .map(image -> String.valueOf(image.getAttachmentId()))
@@ -127,7 +115,7 @@ public class CarModelServiceImpl extends ServiceImpl<CarModelMapper, CarModel> i
                 }
             }
         }
-        
+
         return resultPage;
     }
 
@@ -142,20 +130,9 @@ public class CarModelServiceImpl extends ServiceImpl<CarModelMapper, CarModel> i
         model.setCreateTime(LocalDateTime.now());
         model.setUpdateTime(LocalDateTime.now());
 
-        // 处理模型文件附件ID和URL
-        if (model.getModelAttachmentId() != null) {
-            SysAttachment modelAttachment = attachmentService.getById(model.getModelAttachmentId());
-            if (modelAttachment != null) {
-                // 设置模型文件附件ID
-                model.setModelAttachmentId(Long.valueOf(modelAttachment.getId()));
-                // 设置模型URL
-                model.setModelUrl(modelAttachment.getPath());
-            }
-        }
-
         boolean result = super.save(model);
 
-        if (result && CollectionUtils.isNotEmpty(model.getImages())) {
+        if (result && CollectionUtils.isNotEmpty(model.getImageIds())) {
             batchInsertCarImages(model);
         }
 
@@ -165,34 +142,25 @@ public class CarModelServiceImpl extends ServiceImpl<CarModelMapper, CarModel> i
     private void batchInsertCarImages(CarModel model) {
         // 创建图片列表
         List<CarImage> imageList = new ArrayList<>();
-        
+
         // 处理封面图片，如果存在
-        if (StringUtils.hasText(model.getCoverImage())) {
-            SysAttachment coverImageAttachment = attachmentService.getById(model.getCoverImage());
-            if (coverImageAttachment != null) {
-                CarImage coverCarImage = new CarImage()
-                        .setModelId(model.getId())
-                        .setAttachmentId(Long.valueOf(coverImageAttachment.getId()))
-                        .setImageUrl(coverImageAttachment.getPath())
-                        .setImageType("0");
-                imageList.add(coverCarImage); // 添加封面图片
-            }
+        if (StringUtils.hasText(model.getCoverImageId())) {
+            CarImage coverCarImage = new CarImage()
+                    .setModelId(model.getId())
+                    .setAttachmentId(Long.valueOf(model.getCoverImageId()))
+                    .setImageType("0");
+            imageList.add(coverCarImage); // 添加封面图片
         }
 
         // 添加其他图片，如果存在
-        if (CollectionUtils.isNotEmpty(model.getImages())) {
-            model.getImages().stream()
+        if (CollectionUtils.isNotEmpty(model.getImageIds())) {
+            model.getImageIds().stream()
                     .filter(StringUtils::hasText)
                     .map(attachmentId -> {
-                        SysAttachment imageAttachment = attachmentService.getById(attachmentId);
-                        if (imageAttachment != null) {
                             return new CarImage()
                                     .setModelId(model.getId())
-                                    .setAttachmentId(Long.valueOf(imageAttachment.getId()))
-                                    .setImageUrl(imageAttachment.getPath())
+                                    .setAttachmentId(Long.valueOf(attachmentId))
                                     .setImageType("1");
-                        }
-                        return null;
                     })
                     .filter(carImage -> carImage != null)
                     .forEach(imageList::add);
@@ -224,65 +192,39 @@ public class CarModelServiceImpl extends ServiceImpl<CarModelMapper, CarModel> i
      * @return 车型详情
      */
     @Override
-    public CarModelDTO selectModelDetailById(Long id) {
+    public CarModel selectModelDetailById(Long id) {
         // 查询车型信息
         CarModel model = this.getById(id);
         if (model == null) {
             return null;
         }
-
-        // 转换为DTO
-        CarModelDTO modelDTO = new CarModelDTO();
-        BeanUtils.copyProperties(model, modelDTO);
-
-        // 查询品牌信息
-        if (model.getBrandId() != null) {
-            CarBrand brand = brandMapper.selectById(model.getBrandId());
-            if (brand != null) {
-                model.setBrandName(brand.getName());
-                modelDTO.setBrand(brand);
-            }
-        }
-
         // 查询首图（类型为0的图片）
         com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<CarImage> mainImageWrapper = new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
-        mainImageWrapper.eq(CarImage::getModelId, id)
-                       .eq(CarImage::getImageType, "0")
-                       .eq(CarImage::getDelFlag, "0");
+        mainImageWrapper.eq(CarImage::getModelId, model.getId())
+                .eq(CarImage::getImageType, "0")
+                .eq(CarImage::getDelFlag, "0");
         List<CarImage> mainImages = imageMapper.selectList(mainImageWrapper);
-        modelDTO.setMainImages(mainImages);
-        
         if (!mainImages.isEmpty()) {
             CarImage mainImage = mainImages.get(0);
-            // 设置首图URL
-            model.setCoverImage(mainImage.getImageUrl());
             // 设置首图ID
             model.setCoverImageId(String.valueOf(mainImage.getAttachmentId()));
         }
 
         // 查询详情图（类型为1的图片）
         com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<CarImage> detailImageWrapper = new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
-        detailImageWrapper.eq(CarImage::getModelId, id)
-                         .eq(CarImage::getImageType, "1")
-                         .eq(CarImage::getDelFlag, "0");
+        detailImageWrapper.eq(CarImage::getModelId, model.getId())
+                .eq(CarImage::getImageType, "1")
+                .eq(CarImage::getDelFlag, "0");
         List<CarImage> detailImages = imageMapper.selectList(detailImageWrapper);
-        modelDTO.setDetailImages(detailImages);
-        
         if (!detailImages.isEmpty()) {
-            // 设置详情图URL列表
-            List<String> imageUrls = detailImages.stream()
-                    .map(CarImage::getImageUrl)
-                    .collect(Collectors.toList());
-            model.setImages(imageUrls);
-            
             // 设置详情图ID列表
             List<String> imageIds = detailImages.stream()
                     .map(image -> String.valueOf(image.getAttachmentId()))
                     .collect(Collectors.toList());
             model.setImageIds(imageIds);
         }
-        
-        return modelDTO;
+
+        return model;
     }
 
     /**
@@ -303,9 +245,123 @@ public class CarModelServiceImpl extends ServiceImpl<CarModelMapper, CarModel> i
      * @return 结果
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public int updateModel(CarModel model) {
         model.setUpdateTime(LocalDateTime.now());
-        return modelMapper.updateModel(model);
+
+        // 使用MyBatis-Plus提供的updateById方法
+        boolean result = this.updateById(model);
+
+        // 处理图片更新
+        if (result) {
+            // 处理封面图片（如果有）
+            if (model.getCoverImageId() != null) {
+                // 查询是否已存在该附件ID的封面图片
+                com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<CarImage> coverImageWrapper = new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
+                coverImageWrapper.eq(CarImage::getModelId, model.getId())
+                        .eq(CarImage::getImageType, "0")
+                        .eq(CarImage::getAttachmentId, model.getCoverImageId())
+                        .eq(CarImage::getDelFlag, "0");
+                List<CarImage> existingCoverImages = imageMapper.selectList(coverImageWrapper);
+
+                // 先删除此车型的其他所有封面图片（保留当前使用的）
+                com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<CarImage> deleteCoverWrapper = new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
+                deleteCoverWrapper.eq(CarImage::getModelId, model.getId())
+                        .eq(CarImage::getImageType, "0")
+                        .ne(CarImage::getAttachmentId, model.getCoverImageId())
+                        .eq(CarImage::getDelFlag, "0");
+                imageMapper.delete(deleteCoverWrapper);
+
+                // 如果不存在当前封面图片，则新增
+                if (existingCoverImages.isEmpty()) {
+                        CarImage coverImage = new CarImage()
+                                .setModelId(model.getId())
+                                .setAttachmentId(Long.valueOf(model.getCoverImageId()))
+                                .setImageType("0")  // 封面图类型为0
+                                .setStatus("0")
+                                .setDelFlag("0")
+                                .setCreateTime(LocalDateTime.now())
+                                .setUpdateTime(LocalDateTime.now());
+
+                        imageMapper.insert(coverImage);
+                }
+            } else {
+                // 如果没有提供封面图片，删除所有封面图片
+                com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<CarImage> deleteCoverWrapper = new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
+                deleteCoverWrapper.eq(CarImage::getModelId, model.getId())
+                        .eq(CarImage::getImageType, "0")
+                        .eq(CarImage::getDelFlag, "0");
+                imageMapper.delete(deleteCoverWrapper);
+            }
+
+            // 处理详情图片列表（如果有）
+            if (CollectionUtils.isNotEmpty(model.getImageIds())) {
+                // 查询现有的所有详情图片
+                com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<CarImage> detailImageWrapper = new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
+                detailImageWrapper.eq(CarImage::getModelId, model.getId())
+                        .eq(CarImage::getImageType, "1")
+                        .eq(CarImage::getDelFlag, "0");
+                List<CarImage> existingDetailImages = imageMapper.selectList(detailImageWrapper);
+
+                // 获取已有图片的附件ID列表
+                List<String> existingAttachmentIds = existingDetailImages.stream()
+                        .map(image -> String.valueOf(image.getAttachmentId()))
+                        .collect(Collectors.toList());
+
+                // 获取需要保留的附件ID列表
+                List<String> newAttachmentIds = model.getImageIds();
+
+                // 找出需要删除的图片（在已有列表但不在新列表中）
+                List<String> attachmentIdsToDelete = existingAttachmentIds.stream()
+                        .filter(id -> !newAttachmentIds.contains(id))
+                        .collect(Collectors.toList());
+
+                // 删除不再需要的图片
+                if (!attachmentIdsToDelete.isEmpty()) {
+                    for (String attachmentId : attachmentIdsToDelete) {
+                        com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<CarImage> deleteWrapper = new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
+                        deleteWrapper.eq(CarImage::getModelId, model.getId())
+                                .eq(CarImage::getImageType, "1")
+                                .eq(CarImage::getAttachmentId, attachmentId)
+                                .eq(CarImage::getDelFlag, "0");
+                        imageMapper.delete(deleteWrapper);
+                    }
+                }
+
+                // 找出需要添加的图片（在新列表但不在已有列表中）
+                List<String> attachmentIdsToAdd = newAttachmentIds.stream()
+                        .filter(id -> !existingAttachmentIds.contains(id))
+                        .collect(Collectors.toList());
+
+                // 添加新图片
+                if (!attachmentIdsToAdd.isEmpty()) {
+                    for (int i = 0; i < attachmentIdsToAdd.size(); i++) {
+                        String attachmentId = attachmentIdsToAdd.get(i);
+
+                            CarImage detailImage = new CarImage()
+                                    .setModelId(model.getId())
+                                    .setAttachmentId(Long.valueOf(attachmentId))
+                                    .setImageType("1")  // 详情图类型为1
+                                    .setSort(existingDetailImages.size() + i + 1)  // 设置排序号
+                                    .setStatus("0")
+                                    .setDelFlag("0")
+                                    .setCreateTime(LocalDateTime.now())
+                                    .setUpdateTime(LocalDateTime.now());
+
+                            imageMapper.insert(detailImage);
+                    }
+                }
+            } else {
+                // 如果没有提供详情图片，删除所有详情图片
+                com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<CarImage> deleteDetailWrapper = new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
+                deleteDetailWrapper.eq(CarImage::getModelId, model.getId())
+                        .eq(CarImage::getImageType, "1")
+                        .eq(CarImage::getDelFlag, "0");
+                imageMapper.delete(deleteDetailWrapper);
+            }
+        }
+
+        return result ? 1 : 0;
     }
 
     /**
@@ -345,13 +401,9 @@ public class CarModelServiceImpl extends ServiceImpl<CarModelMapper, CarModel> i
      * @return 结果
      */
     @Override
-    public int changeStatus(CarModelDTO carModelDTO) {
-        // 使用BaseMapper的updateById方法更新状态
-        CarModel model = new CarModel();
-        model.setId(Long.valueOf(carModelDTO.getId()));
-        model.setStatus(carModelDTO.getStatus());
+    public int changeStatus(CarModel model) {
         model.setUpdateTime(LocalDateTime.now());
-        
+
         // 使用MyBatis-Plus提供的update方法
         boolean result = this.updateById(model);
         return result ? 1 : 0;

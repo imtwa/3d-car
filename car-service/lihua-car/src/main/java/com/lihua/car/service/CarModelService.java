@@ -41,7 +41,7 @@ public interface CarModelService {
      * @param id 车型ID
      * @return 车型详情
      */
-    CarModelDTO selectModelDetailById(Long id);
+    CarModel selectModelDetailById(Long id);
     
     /**
      * 根据品牌ID查询车型列表
@@ -86,8 +86,8 @@ public interface CarModelService {
     /**
      * 变更车型状态
      *
-     * @param carModelDTO 车型信息
+     * @param model 车型信息
      * @return 结果
      */
-    int changeStatus(CarModelDTO carModelDTO);
+    int changeStatus(CarModel model);
 }

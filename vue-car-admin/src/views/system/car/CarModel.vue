@@ -128,20 +128,20 @@
         </a-form-item>
         <a-form-item label="汽车参数" name="params">
           <a-textarea
-            v-model:value="formData.params"
+            v-model:value="formData.parameters"
             placeholder="请输入汽车参数"
           />
         </a-form-item>
-        <a-form-item label="汽车首图" name="coverImage">
+        <a-form-item label="汽车首图" name="coverImageId">
           <attachment-upload
             :maxCount="1"
-            v-model="formData.coverImage"
+            v-model="formData.coverImageId"
             model="picture"
           />
         </a-form-item>
-        <a-form-item label="汽车介绍图片" name="images">
+        <a-form-item label="汽车介绍图片" name="imageIds">
           <attachment-upload
-            v-model="formData.images"
+            v-model="formData.imageIds"
             model="picture"
             multiple
           />
@@ -149,7 +149,9 @@
         <a-form-item label="3D模型文件" name="modelAttachmentId">
           <attachment-upload
             :uploadType="['.glb', '.GLB', '.gltf', '.fbx', '.FBX']"
-            :max-size="500" chunk :chunk-size="5"
+            :max-size="500"
+            chunk
+            :chunk-size="5"
             v-model="formData.modelAttachmentId"
             model="dragger"
           />
@@ -187,9 +189,9 @@ interface FormData {
   name?: string;
   description?: string;
   price?: number;
-  params?: string;
-  coverImage?: string;
-  images?: string[];
+  parameters?: string;
+  coverImageId?: string;
+  imageIds?: string[];
   modelAttachmentId?: string;
 }
 
@@ -277,7 +279,10 @@ const getList = async () => {
   try {
     loading.value = true;
     const res = await getCarModelList(queryParams);
-    dataList.value = res.data.records;
+    dataList.value = res.data.records.map((item: any) =>{
+      item.status = item.status === "1";
+      return item;
+    });
     pagination.total = res.data.records.total;
   } catch (error) {
     console.error(error);
@@ -319,9 +324,20 @@ const handleAdd = () => {
     name: "",
     description: "",
     price: undefined,
-    params: "",
-    coverImage: "",
-    images: [],
+    parameters: `{
+  "acceleration": "",
+  "displacement": "",
+  "power": "",
+  "imageTxt": [
+    {
+      "title": "图片一标签",
+      "description": "图片一简介"
+    }
+  ]
+}
+`,
+    coverImageId: "",
+    imageIds: "",
     modelAttachmentId: "",
   });
 };
@@ -336,24 +352,13 @@ const handleEdit = (record: any) => {
     name: record.name,
     description: record.description,
     price: record.price,
-    params: record.params,
-    coverImage: record.coverImageId,
-    images: record.imageIds.join(','),
+    parameters: record.parameters,
+    coverImageId: record.coverImageId,
+    imageIds: record.imageIds?.join(",") || "",
     modelAttachmentId: record.modelAttachmentId,
   });
-  console.log('编辑车型数据:', record);
+  console.log("编辑车型数据:", record);
 };
-
-// 监听formData
-watch(
-  () => formData,
-  (newValue) => {
-    console.log(newValue);
-  },
-  {
-    deep: true,
-  }
-);
 
 // 删除
 const handleDelete = async (record: any) => {

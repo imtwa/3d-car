@@ -1,57 +1,143 @@
 <template>
   <div class="brand-detail">
-    <!-- 品牌信息头部 -->
-    <div class="brand-intro">
-      <img :src="brand?.logo" :alt="brand?.name" class="brand-logo" />
-      <div class="brand-info">
-        <h1>{{ brand?.name }}</h1>
-        <p class="description">{{ brand?.description }}</p>
-        <div class="brand-stats">
-          <div class="stat-item">
-            <span class="stat-value">{{ brand?.models?.length || 0 }}</span>
-            <span class="stat-label">车型数量</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-value">{{ brand?.foundYear || '1926' }}</span>
-            <span class="stat-label">创立年份</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-value">{{ brand?.country || '德国' }}</span>
-            <span class="stat-label">原产国</span>
-          </div>
+    <!-- 顶部导航 -->
+    <div class="top-navigation">
+      <!-- 车型选择器 -->
+      <div class="model-selector" v-if="allModels.length > 0">
+        <div
+          v-for="(model, index) in allModels"
+          :key="model.id"
+          class="model-tab"
+          :class="{ active: currentModelIndex === index }"
+          @click="selectModel(index)"
+        >
+          {{ model.name }}
         </div>
       </div>
     </div>
 
-    <!-- 车型展示列表 -->
-    <div class="model-list">
-      <h2>车型展示</h2>
-      <div v-if="!brand?.models || brand?.models.length === 0" class="empty-models">
-        <el-empty description="暂无车型数据" />
+    <!-- 全屏轮播图 -->
+    <div class="fullscreen-carousel">
+      <el-carousel
+        :interval="5000"
+        arrow="always"
+        indicator-position="none"
+        height="calc(100vh - 120px)"
+        @change="handleCarouselChange"
+        ref="carousel"
+        :initial-index="0"
+      >
+        <el-carousel-item v-for="(model, index) in allModels" :key="model.id">
+          <div class="carousel-content">
+            <div class="image-container">
+              <img :src="model.coverImageUrl" :alt="model.name" class="model-image" />
+            </div>
+
+            <!-- 车型信息上方覆盖层 - 显示车型名称 -->
+            <div class="model-info-overlay top">
+              <div class="model-name-container">
+                <h1>{{ model.name }}</h1>
+              </div>
+            </div>
+
+            <!-- 车型信息下方覆盖层 - 显示参数和按钮 -->
+            <div class="model-info-overlay bottom">
+              <div class="model-details">
+                <div class="model-specs" v-if="model.parameters">
+                  <div class="spec-item">
+                    <span class="spec-value">{{ model.parameters?.acceleration || '6.2' }} s</span>
+                    <span class="spec-label">最快百公里加速</span>
+                  </div>
+                  <div class="spec-item">
+                    <span class="spec-value"
+                      >{{ model.parameters?.displacement || '1984' }} cm<sup>3</sup></span
+                    >
+                    <span class="spec-label">最大排量容量</span>
+                  </div>
+                  <div class="spec-item">
+                    <span class="spec-value">{{ model.parameters?.power || '195' }} kW</span>
+                    <span class="spec-label">最大输出功率</span>
+                  </div>
+                </div>
+
+                <div class="action-buttons">
+                  <el-button type="primary" class="detail-btn" @click="showModelDetail(model)"
+                    >查看详情</el-button
+                  >
+                  <el-button type="default" class="virtual-btn" @click="showVirtualDisplay(model)"
+                    >虚拟展示</el-button
+                  >
+                </div>
+              </div>
+            </div>
       </div>
-      <el-row :gutter="30" v-else>
-        <el-col v-for="model in brand?.models" :key="model.id" :xs="24" :sm="12" :md="8" :lg="8">
-          <model-card :model="model" @showView="showView(model)" />
-        </el-col>
-      </el-row>
+        </el-carousel-item>
+      </el-carousel>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { brandApi } from '@/api/brand'
+import { getCarModelList } from '@/api/car'
+import { queryAttachmentInfoByIds } from '@/api/AttachmentStorage'
 import { ElMessage, ElLoading } from 'element-plus'
-import { Star } from '@element-plus/icons-vue'
-import ModelCard from '@/views/brands/components/ModelCard.vue'
 
 const route = useRoute()
 const router = useRouter()
-const brand = ref(null)
 const loading = ref(false)
 
-onMounted(async () => {
+// 轮播图引用
+const carousel = ref(null)
+
+// 所有车型列表
+const allModels = ref([])
+
+// 当前选中的车型索引
+const currentModelIndex = ref(0)
+
+// 选择车型
+function selectModel(index) {
+  currentModelIndex.value = index
+  // 手动控制轮播图切换到对应索引
+  if (carousel.value) {
+    carousel.value.setActiveItem(index)
+  }
+}
+
+// 处理轮播图切换
+function handleCarouselChange(index) {
+  // 更新当前选中的车型索引
+  currentModelIndex.value = index
+  console.log('当前车型索引:', index)
+}
+
+// 获取图片URL
+function getImageUrl(image) {
+  // 如果image已经是完整URL，则直接返回
+  if (image && (image.startsWith('http://') || image.startsWith('https://'))) {
+    return image
+  }
+  // 否则拼接基础URL
+  return image || 'https://via.placeholder.com/800x450?text=暂无图片'
+}
+
+// 显示车型详情
+function showModelDetail(model) {
+  if (!model) return
+  router.push(`/cars/${model.id}`)
+}
+
+// 显示虚拟展示
+function showVirtualDisplay(model) {
+  if (!model) return
+  ElMessage.info(`即将进入${model.name}的虚拟展示`)
+  // 这里可以添加跳转到虚拟展示页面的逻辑
+}
+
+// 获取品牌详情和车型列表
+async function fetchBrandData() {
   loading.value = true
   const loadingInstance = ElLoading.service({
     target: '.brand-detail',
@@ -59,275 +145,454 @@ onMounted(async () => {
     background: 'rgba(255, 255, 255, 0.7)'
   })
 
-  try {
-    // const res = await brandApi.getBrandDetail(route.params.id)
-    const res = {}
-    brand.value = { id: '1', models: [] }
+  useMockData()
 
-    // 如果没有模拟数据，添加一些模拟数据用于展示
-    if (!brand.value.models || brand.value.models.length === 0) {
-      if (brand.value.id === '1') {
-        // 假设id为1是奔驰
-        brand.value.models = [
-          {
-            id: '101',
-            name: '奔驰 C级',
-            price: '31.98-48.60万',
-            image:
-              'https://img2.baidu.com/it/u=2442436610,2127871497&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=333'
-          },
-          {
-            id: '102',
-            name: '奔驰 E级',
-            price: '42.98-62.98万',
-            image:
-              'https://img1.baidu.com/it/u=3257632527,1396293257&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=333'
-          },
-          {
-            id: '103',
-            name: '奔驰 S级',
-            price: '93.80-165.80万',
-            image:
-              'https://img0.baidu.com/it/u=3224648955,1193166630&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=333'
-          }
-        ]
-        brand.value.features = [
-          {
-            title: '豪华舒适',
-            description: '奔驰以卓越的舒适性和豪华内饰著称，为驾乘者提供极致体验'
-          },
-          { title: '安全科技', description: '领先的安全技术和驾驶辅助系统，确保驾乘安全' },
-          { title: '精工制造', description: '德国工艺精神的代表，每一个细节都彰显品质' }
-        ]
-        brand.value.history =
-          '梅赛德斯-奔驰是世界上最著名的汽车品牌之一，拥有超过130年的历史。1886年，卡尔·本茨发明了世界上第一辆汽车，开创了汽车工业的先河。多年来，奔驰一直致力于创新和卓越，成为豪华汽车的代名词。'
-        brand.value.foundYear = '1886'
-        brand.value.country = '德国'
-      } else if (brand.value.id === '2') {
-        // 假设id为2是奥迪
-        brand.value.models = [
-          {
-            id: '201',
-            name: '奥迪 A4L',
-            price: '30.98-39.68万',
-            image:
-              'https://img2.baidu.com/it/u=3519522381,1341358140&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=333'
-          },
-          {
-            id: '202',
-            name: '奥迪 A6L',
-            price: '41.98-65.38万',
-            image:
-              'https://img0.baidu.com/it/u=2900496193,3583187074&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=333'
-          },
-          {
-            id: '203',
-            name: '奥迪 Q5L',
-            price: '39.68-48.38万',
-            image:
-              'https://img1.baidu.com/it/u=3789867991,1930019998&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=333'
-          }
-        ]
-        brand.value.features = [
-          { title: '科技前沿', description: '奥迪以尖端科技和创新设计著称，引领汽车技术发展' },
-          { title: '卓越性能', description: 'quattro四驱系统和高效动力总成，提供出色驾驶体验' },
-          { title: '精致设计', description: '简约而不简单的设计语言，彰显现代豪华气质' }
-        ]
-        brand.value.history =
-          '奥迪汽车公司成立于1909年，由August Horch创立。"奥迪"一词源自拉丁语"audi"，意为"听"，象征着奥迪对声音和音乐的高品质追求。多年来，奥迪一直致力于创新和卓越，成为豪华汽车的领导者之一。'
-      }
+  try {
+    const brandId = route.params.id
+
+    // 从真实API获取数据
+    const res = await getCarModelList({
+      pageNum: 1,
+      pageSize: 100,
+      brandId
+    })
+    const models = res.data?.records || []
+
+    // 如果有真实数据，直接使用
+    if (models.length > 0) {
+      // 收集所有封面图片ID
+      const coverImageIds = models.map(model => model.coverImageId)
+
+      // 一次性获取所有封面图片的URL
+      const coverImagesRes = await queryAttachmentInfoByIds(coverImageIds)
+      const coverImages = coverImagesRes.data || []
+
+      // 创建一个映射，以便快速查找封面图片URL
+      const coverImageMap = coverImages.reduce((acc, img) => {
+        acc[img.id] = '/api' +  img.path
+        return acc
+      }, {})
+
+      // 为每个模型添加封面图片URL
+      allModels.value = models.map(model => ({
+        ...model,
+        coverImageUrl: coverImageMap[model.coverImageId] || '' // 如果没有找到URL，可以提供一个默认值或空字符串
+      }))
     }
-    loading.value = false
-    // 关闭加载动画
-    loadingInstance.close()
+
   } catch (error) {
+    console.error('获取品牌信息失败:', error)
     ElMessage.error('获取品牌信息失败')
+  } finally {
     loading.value = false
-    // 关闭加载动画
     loadingInstance.close()
   }
-})
+}
+
+// 不再需要按分类组织车型数据
+
+// 使用模拟数据
+function useMockData() {
+  // 模拟车型数据 - 平铺展示所有车型
+  allModels.value = [
+    {
+      id: '101',
+      name: 'A3',
+      description: '豪华紧凑型轿车',
+      price: '28.98-33.65万',
+      category: '轿车',
+      parameters: {
+        acceleration: '7.7',
+        displacement: '1984',
+        power: '150'
+      },
+      images: [
+        'https://www.audi.cn/content/dam/OneWeb/faw_vw/model_finder/faw_vw/model_filter/model_filter_car_image/A5-Sportback_MY2023.png'
+      ]
+    }
+  ]
+}
+
+// 在组件挂载时获取数据
+onMounted(fetchBrandData)
+
+// 当路由参数改变时重新获取数据
+watch(() => route.params.id, fetchBrandData)
 </script>
 
 <style lang="scss" scoped>
 .brand-detail {
-  padding: 40px 20px;
-  max-width: 1200px;
-  margin: 0 auto;
   position: relative;
-  min-height: 500px;
+  background-color: #000;
+  color: #fff;
+  overflow: hidden;
 
   @media (max-width: 768px) {
-    padding: 20px 15px;
+    min-height: calc(100vh - 60px);
   }
 
-  h2 {
-    font-size: 2rem;
-    color: #303133;
-    margin: 50px 0 30px;
+  // 全屏轮播图样式
+  .fullscreen-carousel {
     position: relative;
-    padding-bottom: 15px;
+    height: calc(100vh - 140px);
 
-    &:after {
-      content: '';
+    // 自定义导航按钮样式
+    .custom-nav-buttons {
       position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 60px;
-      height: 3px;
-      background-color: #3498db;
-    }
+      top: 50%;
+      width: 100%;
+      transform: translateY(-50%);
+      z-index: 1000;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 20%;
+      pointer-events: none; // 避免干扰轮播图内容的交互
 
-    @media (max-width: 768px) {
-      font-size: 1.5rem;
-      margin: 30px 0 20px;
-    }
-  }
-
-  .brand-intro {
+      .nav-button {
+        width: 50px;
+        height: 50px;
+        background-color: rgba(255, 255, 255, 0.9);
+        border-radius: 50%;
     display: flex;
     align-items: center;
-    margin-bottom: 60px;
-    padding: 40px;
-    background: #f5f7fa;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+        pointer-events: auto; // 确保按钮可以接收点击事件
+        color: #000;
+        font-size: 24px;
+        transition: background-color 0.3s;
 
-    @media (max-width: 768px) {
-      flex-direction: column;
-      text-align: center;
-      padding: 30px 20px;
-    }
+        &:hover {
+          background-color: #ffffff;
+        }
 
-    .brand-logo {
-      height: 100px;
-      margin-right: 40px;
-      object-fit: contain;
-
-      @media (max-width: 768px) {
-        margin-right: 0;
-        margin-bottom: 20px;
+        &.next {
+          border: 2px solid #ff0000; // 添加红色边框以匹配用户图片中的红框
+        }
       }
     }
 
-    .brand-info {
-      flex: 1;
+    .el-carousel {
+      height: 100%;
 
-      h1 {
-        font-size: 2.5rem;
-        color: #303133;
-        margin: 0 0 20px;
+      .el-carousel__arrow {
+        background-color: rgba(255, 255, 255, 0.9);
+        color: #000;
+        font-size: 24px;
+        width: 50px;
+        height: 50px;
+        z-index: 999; /* 进一步提高z-index确保按钮在最上层 */
+        border-radius: 50%;
+        box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+        pointer-events: auto; /* 确保按钮可以接收点击事件 */
+        opacity: 1 !important; /* 确保按钮始终可见 */
 
-        @media (max-width: 768px) {
-          font-size: 2rem;
+        &--left {
+          left: 20%;
+        }
+
+        &--right {
+          right: 20%;
+        }
+
+        &:hover {
+          background-color: #ffffff;
+          cursor: pointer; /* 确保鼠标悬停时显示为指针 */
         }
       }
 
-      .description {
-        font-size: 1.2rem;
-        color: #606266;
-        margin: 0 0 20px;
-        line-height: 1.6;
+      .carousel-content {
+        position: relative;
+        height: 100%;
 
-        @media (max-width: 768px) {
-          font-size: 1rem;
+        .image-container {
+          height: 100%;
+          width: 100%;
+          overflow: hidden;
+
+          .model-image {
+            max-width: 70%;
+            max-height: 70%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            object-position: center;
+            transition: transform 0.5s;
+            margin: 0 auto;
+            display: block;
+          }
+
+          /* 确保图片容器相对定位，以便按钮可以相对于它定位 */
+          &:hover .model-image {
+            transform: scale(1.05);
+          }
         }
-      }
 
-      .brand-stats {
-        display: flex;
-        margin-top: 20px;
-
-        @media (max-width: 768px) {
-          justify-content: center;
-        }
-
-        .stat-item {
-          margin-right: 40px;
+        // 车型信息覆盖层 - 基础样式
+        .model-info-overlay {
+          position: absolute;
+          left: 0;
+          width: 100%;
+          color: white;
           text-align: center;
 
-          &:last-child {
-            margin-right: 0;
+          @media (max-width: 768px) {
+            padding: 20px;
           }
 
-          .stat-value {
-            display: block;
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: #3498db;
+          // 上方覆盖层 - 显示车型名称
+          &.top {
+            top: 0;
+            padding: 30px;
+            background: linear-gradient(
+              to bottom,
+              rgba(0, 0, 0, 0.8) 0%,
+              rgba(0, 0, 0, 0.4) 30%,
+              rgba(0, 0, 0, 0) 100%
+            );
+
+            .model-name-container {
+              h1 {
+                font-size: 3rem;
+                font-weight: 600;
+                margin: 0;
+                text-align: center;
+
+                @media (max-width: 768px) {
+                  font-size: 2rem;
+                }
+              }
+            }
           }
 
-          .stat-label {
-            display: block;
+          // 下方覆盖层 - 显示参数和按钮
+          &.bottom {
+            bottom: 0;
+            padding: 40px;
+            background: linear-gradient(
+              to top,
+              rgba(0, 0, 0, 0.8) 0%,
+              rgba(0, 0, 0, 0.4) 50%,
+              rgba(0, 0, 0, 0) 100%
+            );
+            display: flex;
+            justify-content: center;
+
+            .model-details {
+              max-width: 800px;
+
+              .model-description {
+                font-size: 1.1rem;
+                margin: 0 0 15px;
+                opacity: 0.9;
+
+                @media (max-width: 768px) {
+                  font-size: 0.9rem;
+                }
+              }
+
+              .model-price {
+                font-size: 1.3rem;
+                font-weight: 600;
+                margin: 0 0 20px;
+
+                @media (max-width: 768px) {
+                  font-size: 1.1rem;
+                  margin: 0 0 15px;
+                }
+              }
+
+              .model-specs {
+                display: flex;
+                gap: 40px;
+                margin-bottom: 30px;
+                justify-content: center;
+
+                @media (max-width: 768px) {
+                  gap: 20px;
+                  flex-wrap: wrap;
+                  margin-bottom: 20px;
+                }
+
+                .spec-item {
+                  display: flex;
+                  flex-direction: column;
+
+                  .spec-value {
+                    font-size: 1.5rem;
+                    font-weight: 600;
+                    margin-bottom: 5px;
+
+                    @media (max-width: 768px) {
+                      font-size: 1.2rem;
+                    }
+                  }
+
+                  .spec-label {
             font-size: 0.9rem;
-            color: #909399;
-            margin-top: 5px;
+                    opacity: 0.7;
+                  }
+                }
+              }
+
+              .action-buttons {
+                display: flex;
+                gap: 15px;
+                justify-content: center;
+
+                @media (max-width: 768px) {
+                  flex-direction: column;
+                  gap: 10px;
+                }
+
+                .el-button {
+                  min-width: 120px;
+                  border-radius: 0;
+                  font-weight: 500;
+
+                  &.detail-btn {
+                    background-color: white;
+                    color: black;
+                    border: none;
+
+                    &:hover {
+                      background-color: rgba(255, 255, 255, 0.9);
+                    }
+                  }
+
+                  &.virtual-btn {
+                    background-color: transparent;
+                    color: white;
+                    border: 1px solid white;
+
+                    &:hover {
+                      background-color: rgba(255, 255, 255, 0.1);
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
     }
   }
+}
 
-  .brand-history {
-    background: white;
-    border-radius: 12px;
-    padding: 30px;
-    margin-bottom: 60px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+/* 过渡动画 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s ease;
+}
 
-    p {
-      color: #606266;
-      line-height: 1.8;
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+// 顶部导航样式
+.top-navigation {
+  position: relative;
+  z-index: 10;
+  padding: 20px 40px;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: center;
+
+  @media (max-width: 768px) {
+    padding: 15px;
+  }
+
+  // 车型分类选择器
+  .category-selector {
+    display: flex;
+    gap: 30px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+
+    &::-webkit-scrollbar {
+      height: 3px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .category-tab {
       font-size: 1.1rem;
-      text-align: justify;
-
-      @media (max-width: 768px) {
-        font-size: 1rem;
-      }
-    }
-  }
-
-  .model-list {
-    margin-bottom: 60px;
-
-    .empty-models {
-      padding: 40px 0;
-    }
-  }
-
-  .brand-features {
-    margin-bottom: 60px;
-
-    .feature-card {
-      background: white;
-      border-radius: 12px;
-      padding: 30px;
-      text-align: center;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-      height: 100%;
-      transition: transform 0.3s;
+      font-weight: 500;
+      padding: 5px 0;
+      cursor: pointer;
+      white-space: nowrap;
+      position: relative;
+      color: rgba(255, 255, 255, 0.7);
+      transition: color 0.3s;
 
       &:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        color: white;
       }
 
-      .feature-icon {
-        font-size: 2.5rem;
-        color: #3498db;
-        margin-bottom: 20px;
+      &.active {
+        color: white;
+
+        &:after {
+          content: '';
+          position: absolute;
+          bottom: -2px;
+          left: 0;
+          width: 100%;
+          height: 2px;
+          background-color: white;
+        }
+      }
+    }
+  }
+
+  // 车型选择器
+  .model-selector {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    padding-bottom: 5px;
+    justify-content: center;
+
+    &::-webkit-scrollbar {
+      height: 2px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .model-tab {
+      font-size: 1rem;
+      padding: 5px 0;
+      cursor: pointer;
+      white-space: nowrap;
+      position: relative;
+      color: rgba(255, 255, 255, 0.6);
+      transition: color 0.3s;
+
+      &:hover {
+        color: white;
       }
 
-      h3 {
-        font-size: 1.3rem;
-        color: #303133;
-        margin: 0 0 15px;
-      }
+      &.active {
+        color: white;
+        font-weight: 500;
 
-      p {
-        color: #606266;
-        line-height: 1.6;
-        margin: 0;
+        &:after {
+          content: '';
+          position: absolute;
+          bottom: -2px;
+          left: 0;
+          width: 100%;
+          height: 2px;
+          background-color: white;
+        }
       }
     }
   }

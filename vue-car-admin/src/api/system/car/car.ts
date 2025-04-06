@@ -38,7 +38,8 @@ export function addCarModel(data: CarModel) {
     method: "post",
     data: {
       ...data,
-      images: data.images?.split(","),
+      // 确保imageIds是数组格式传递给后端
+      imageIds: Array.isArray(data.imageIds) ? data.imageIds : (data.imageIds ? data.imageIds.toString().split(",").filter(Boolean) : [])
     },
   });
 }
@@ -49,7 +50,8 @@ export function updateCarModel(data: CarModel) {
     method: "post",
     data: {
       ...data,
-      images: data.images?.split(","),
+      // 确保imageIds是数组格式传递给后端
+      imageIds: Array.isArray(data.imageIds) ? data.imageIds : (data.imageIds ? data.imageIds.toString().split(",").filter(Boolean) : [])
     },
   });
 }

@@ -29,9 +29,5 @@
             <groupId>com.lihua</groupId>
             <artifactId>lihua-common</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.lihua</groupId>
-            <artifactId>lihua-service</artifactId>
-        </dependency>
     </dependencies>
 </project>

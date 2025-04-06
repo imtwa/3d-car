@@ -1,26 +1,20 @@
 package com.lihua.car.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+
 import com.lihua.annotation.Log;
-import com.lihua.car.dto.CarBrandDTO;
 import com.lihua.car.dto.CarModelDTO;
-import com.lihua.car.entity.CarImage;
 import com.lihua.car.entity.CarModel;
-import com.lihua.car.service.CarImageService;
 import com.lihua.car.service.CarModelService;
 import com.lihua.enums.LogTypeEnum;
-import com.lihua.enums.ResultCodeEnum;
+
 import com.lihua.model.validation.MaxPageSizeLimit;
 import com.lihua.model.web.BaseController;
-import com.lihua.utils.json.JsonUtils;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
+
 
 /**
  * <p>
@@ -44,6 +38,15 @@ public class CarModelController extends BaseController {
     public String selectModelList(@RequestBody @Validated(MaxPageSizeLimit.class) CarModelDTO dto) {
         return success(carModelService.queryPage(dto));
     }
+
+    /**
+     * ID查询车型
+     */
+    @GetMapping("/selectId/{id}")
+    public String selectModelDetailById(@PathVariable("id") Long id) {
+        return success(carModelService.selectModelDetailById(id));
+    }
+
 
     /**
      * 新增车型
@@ -75,7 +78,7 @@ public class CarModelController extends BaseController {
      * 变更车型状态
      */
     @PostMapping("/changeStatus")
-    public String changeStatus(@RequestBody CarModelDTO carModelDTO) {
-        return success(carModelService.changeStatus(carModelDTO));
+    public String changeStatus(@RequestBody CarModel model) {
+        return success(carModelService.changeStatus(model));
     }
 }

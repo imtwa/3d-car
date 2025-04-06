@@ -57,6 +57,7 @@ public class SecurityConfig {
                         "/system/publicKey/**",                         // 获取公钥
                         "/system/sse/connect/**",                       // 连接sse
                         "/system/attachment/storage/download/**",       // 附件下载
+                        "/system/attachment/storage/info",              // 附件信息
                         "system/setting/GrayModelSetting",              // 灰色模式设置
                         "system/setting/SignInSetting",                 // 是否开启用户注册
                         "/system/checkUserName/**",                     // 检查用户名
@@ -68,8 +69,8 @@ public class SecurityConfig {
 
         // 关闭csrf 关闭跨域拦截
         http
-            .csrf(AbstractHttpConfigurer::disable)
-            .cors(AbstractHttpConfigurer::disable);
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(AbstractHttpConfigurer::disable);
 
         // 允许通过iframe访问
         http.headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable));
@@ -90,7 +91,6 @@ public class SecurityConfig {
                 .authenticationEntryPoint(authenticationEntryPoint)
                 // 权限不足处理器
                 .accessDeniedHandler(accessDeniedHandler)
-
         );
 
         return http.build();

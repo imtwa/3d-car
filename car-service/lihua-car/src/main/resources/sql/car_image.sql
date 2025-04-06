@@ -5,7 +5,6 @@ DROP TABLE IF EXISTS `car_image`;
 CREATE TABLE `car_image` (
   `id` bigint NOT NULL COMMENT '图片ID',
   `model_id` bigint NOT NULL COMMENT '所属车型ID',
-  `image_url` varchar(500) NOT NULL COMMENT '图片地址',
   `image_type` char(1) NOT NULL COMMENT '图片类型（0首图 1详情图）',
   `attachment_id` bigint DEFAULT NULL COMMENT '原始文件ID，关联sys_attachment表',
   `sort` int DEFAULT 0 COMMENT '排序号',
