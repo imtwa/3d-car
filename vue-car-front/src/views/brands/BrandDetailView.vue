@@ -113,16 +113,6 @@ function handleCarouselChange(index) {
   console.log('当前车型索引:', index)
 }
 
-// 获取图片URL
-function getImageUrl(image) {
-  // 如果image已经是完整URL，则直接返回
-  if (image && (image.startsWith('http://') || image.startsWith('https://'))) {
-    return image
-  }
-  // 否则拼接基础URL
-  return image || 'https://via.placeholder.com/800x450?text=暂无图片'
-}
-
 // 显示车型详情
 function showModelDetail(model) {
   if (!model) return
@@ -133,7 +123,8 @@ function showModelDetail(model) {
 function showVirtualDisplay(model) {
   if (!model) return
   ElMessage.info(`即将进入${model.name}的虚拟展示`)
-  // 这里可以添加跳转到虚拟展示页面的逻辑
+  // 在新标签页中打开carAR页面
+  window.open(`/carAR/${model.id}`, '_blank')
 }
 
 // 获取品牌详情和车型列表
@@ -223,7 +214,7 @@ watch(() => route.params.id, fetchBrandData)
 <style lang="scss" scoped>
 .brand-detail {
   position: relative;
-  background-color: #000;
+  
   color: #fff;
   overflow: hidden;
 
@@ -347,7 +338,7 @@ watch(() => route.params.id, fetchBrandData)
             padding: 30px;
             background: linear-gradient(
               to bottom,
-              rgba(0, 0, 0, 0.8) 0%,
+              rgba(0, 0, 0, 0.6) 0%,
               rgba(0, 0, 0, 0.4) 30%,
               rgba(0, 0, 0, 0) 100%
             );
@@ -496,7 +487,12 @@ watch(() => route.params.id, fetchBrandData)
   position: relative;
   z-index: 10;
   padding: 20px 40px;
-  background-color: rgba(0, 0, 0, 0.7);
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.8) 0%,
+    rgba(0, 0, 0, 0.7) 50%,
+    rgba(0, 0, 0, 0.6) 100%
+  );
   display: flex;
   flex-direction: column;
   gap: 15px;

@@ -63,6 +63,11 @@ public class CarModel implements Serializable {
     private String price;
 
     /**
+     * 3D模型对应的前端展示路径
+     */
+    private String modelVue;
+
+    /**
      * 3D模型文件附件ID
      */
     @JsonSerialize(using = ToStringSerializer.class)

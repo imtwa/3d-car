@@ -43,6 +43,11 @@ public class CarModelDTO extends BaseDTO implements Serializable {
     private String description;
 
     /**
+     * 3D模型对应的前端展示路径
+     */
+    private String modelVue;
+
+    /**
      * 售价范围
      */
     private String price;

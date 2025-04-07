@@ -397,7 +397,7 @@ public class CarModelServiceImpl extends ServiceImpl<CarModelMapper, CarModel> i
     /**
      * 变更车型状态
      *
-     * @param carModelDTO 车型信息
+     * @param model 车型信息
      * @return 结果
      */
     @Override

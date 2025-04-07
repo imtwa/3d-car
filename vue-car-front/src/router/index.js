@@ -52,6 +52,11 @@ const routes = [
     ]
   },
   {
+    path: '/carAR/:id',
+    name: 'CarAR',
+    component: () => import('@/views/carAR/index.vue')
+  },
+  {
     path: '/login',
     name: 'Login',
     component: () => import('@/views/auth/LoginView.vue')

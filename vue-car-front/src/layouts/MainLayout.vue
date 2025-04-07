@@ -72,17 +72,19 @@ const handleLogout = () => {
 
 <style lang="scss" scoped>
 .main-layout {
- 
   width: 100%;
   background-color: #ffffff;
 
   .header {
-    background: #222;
+    background: rgba(18, 18, 18, 0.8);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     position: sticky;
     width: 100%;
     top: 0;
     z-index: 100;
     height: 60px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
 
   .main-content {
@@ -91,7 +93,7 @@ const handleLogout = () => {
 
   .nav-menu {
     max-width: 1200px;
-    background: #222;
+    background: transparent;
     width: 100%;
     margin: 0 auto;
     display: flex;
@@ -105,12 +107,18 @@ const handleLogout = () => {
     display: flex;
     align-items: center;
     padding: 0 32px;
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: scale(1.05);
+    }
   }
 
   .logo-text {
     font-size: 24px;
     font-weight: bold;
     color: #00d1b2;
+    text-shadow: 0 0 10px rgba(0, 209, 178, 0.3);
   }
 
   .flex-grow {
@@ -120,20 +128,39 @@ const handleLogout = () => {
   :deep(.el-menu) {
     border-bottom: none;
     width: 100%;
-    --el-menu-bg-color: #222;
-    --el-menu-text-color: #fff;
+    --el-menu-bg-color: transparent;
+    --el-menu-text-color: #e0e0e0;
     --el-menu-hover-text-color: #00d1b2;
     --el-menu-active-color: #00d1b2;
   }
 
   :deep(.el-menu-item) {
     font-size: 16px;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.05) !important;
+    }
+
+    &.is-active {
+      font-weight: 500;
+    }
   }
 
   :deep(.el-dropdown) {
     display: flex;
     align-items: center;
     cursor: pointer;
+
+    .el-avatar {
+      border: 2px solid rgba(0, 209, 178, 0.3);
+      transition: all 0.3s ease;
+
+      &:hover {
+        transform: scale(1.1);
+        border-color: #00d1b2;
+      }
+    }
   }
 }
 </style>
