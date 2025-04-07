@@ -150,10 +150,11 @@ const fetchCarDetail = async () => {
       }
     }
     // 获取所有相关图片
-    const allImageIds = [...(carData.value.imageIds || []), carData.value.coverImageId].filter(Boolean) // 过滤空值
+    const allImageIds = [...(carData.value.imageIds || []), carData.value.coverImageId].filter(
+      Boolean
+    ) // 过滤空值
 
     if (allImageIds.length > 0) {
-      
       // 通过API获取图片URL
       const imageResult = await queryAttachmentInfoByIds(allImageIds)
       const images = imageResult.data || []
@@ -178,7 +179,9 @@ const fetchCarDetail = async () => {
             carImages.value.push({
               id: image.id,
               url: '/api' + image.path,
-              text: (carData.value.parameters?.imageTxt && carData.value.parameters.imageTxt[index]) || null
+              text:
+                (carData.value.parameters?.imageTxt && carData.value.parameters.imageTxt[index]) ||
+                null
             })
           }
         })
@@ -302,8 +305,9 @@ onBeforeUnmount(() => {
 <style lang="scss" scoped>
 .car-detail-view {
   position: relative;
+
   width: 100%;
-  height: 100vh;
+  height: calc(100vh - 60px);
   overflow: hidden;
   background-color: #000;
   color: #fff;

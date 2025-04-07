@@ -76,15 +76,16 @@ const handleLogout = () => {
   background-color: #ffffff;
 
   .header {
-    background: rgba(18, 18, 18, 0.8);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: rgba(28, 28, 30, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     position: sticky;
     width: 100%;
     top: 0;
     z-index: 100;
     height: 60px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   }
 
   .main-content {
@@ -117,8 +118,8 @@ const handleLogout = () => {
   .logo-text {
     font-size: 24px;
     font-weight: bold;
-    color: #00d1b2;
-    text-shadow: 0 0 10px rgba(0, 209, 178, 0.3);
+    color: #2c75d4;
+    text-shadow: 0 0 10px rgba(10, 85, 184, 0.3);
   }
 
   .flex-grow {
@@ -129,9 +130,9 @@ const handleLogout = () => {
     border-bottom: none;
     width: 100%;
     --el-menu-bg-color: transparent;
-    --el-menu-text-color: #e0e0e0;
-    --el-menu-hover-text-color: #00d1b2;
-    --el-menu-active-color: #00d1b2;
+    --el-menu-text-color: #f5f5f7;
+    --el-menu-hover-text-color: #1E56A0;
+    --el-menu-active-color: #1E56A0;
   }
 
   :deep(.el-menu-item) {
@@ -139,11 +140,14 @@ const handleLogout = () => {
     transition: all 0.3s ease;
 
     &:hover {
-      background: rgba(255, 255, 255, 0.05) !important;
+      background: rgba(255, 255, 255, 0.08) !important;
+      transform: translateY(-2px);
     }
 
     &.is-active {
       font-weight: 500;
+      position: relative;
+      
     }
   }
 
@@ -153,12 +157,12 @@ const handleLogout = () => {
     cursor: pointer;
 
     .el-avatar {
-      border: 2px solid rgba(0, 209, 178, 0.3);
+      border: 2px solid rgba(30, 86, 160, 0.3);
       transition: all 0.3s ease;
 
       &:hover {
         transform: scale(1.1);
-        border-color: #00d1b2;
+        border-color: #1E56A0;
       }
     }
   }

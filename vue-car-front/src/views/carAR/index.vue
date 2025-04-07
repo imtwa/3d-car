@@ -1,20 +1,18 @@
 <template>
-  <div class="car-ar-container">
-    <div v-if="loading" class="loading-container">
-      <el-loading :fullscreen="true" />
+  <div>
+    <div v-if="loading && error" class="car-ar-container">
+      <div v-if="loading" class="loading-container">
+        <el-loading :fullscreen="true" />
+      </div>
+      <div v-else-if="error" class="error-container">
+        <el-result icon="error" :title="error" sub-title="请检查车型信息或返回首页">
+          <template #extra>
+            <el-button type="primary" @click="router.push('/')">返回首页</el-button>
+          </template>
+        </el-result>
+      </div>
     </div>
-    <div v-else-if="error" class="error-container">
-      <el-result
-        icon="error"
-        :title="error"
-        sub-title="请检查车型信息或返回首页"
-      >
-        <template #extra>
-          <el-button type="primary" @click="router.push('/')">返回首页</el-button>
-        </template>
-      </el-result>
-    </div>
-    <component v-else :is="modelComponent" :modelId="carModel.modelAttachmentId"/>
+    <component v-else-if="carModel" :is="modelComponent" :modelId="carModel.modelAttachmentId" />
   </div>
 </template>
 
@@ -51,7 +49,7 @@ async function loadCarModel() {
     // 动态导入3D模型组件
     const componentPath = carModel.value.modelVue.replace('@/', '')
     modelComponent.value = defineAsyncComponent({
-      loader: () => import(`../../${componentPath}`),
+      loader: () => import(`./components/${componentPath}.vue`),
       loadingComponent: ElLoading,
       errorComponent: {
         template: '<div class="error-message">加载3D模型失败</div>'

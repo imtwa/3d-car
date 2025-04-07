@@ -122,7 +122,6 @@ function showModelDetail(model) {
 // 显示虚拟展示
 function showVirtualDisplay(model) {
   if (!model) return
-  ElMessage.info(`即将进入${model.name}的虚拟展示`)
   // 在新标签页中打开carAR页面
   window.open(`/carAR/${model.id}`, '_blank')
 }

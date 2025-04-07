@@ -1,15 +1,16 @@
 <template>
-  <div class="box" ref="boxRef"></div>
+  <div class="box" ref="boxRef" style="overflow: hidden"></div>
 </template>
 <script setup>
 import * as THREE from 'three'
 import TWEEN from '@tweenjs/tween.js'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
-import { GUI } from 'dat.gui'
+import { GUI } from 'three/examples/jsm/libs/dat.gui.module'
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js'
 import { queryAttachmentInfoByIds } from '@/api/AttachmentStorage'
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
+import { ElLoading } from 'element-plus'
 
 const props = defineProps({
   modelId: {
@@ -20,15 +21,19 @@ const props = defineProps({
 
 const modelUrl = ref('')
 const boxRef = ref(null) // 创建一个ref来引用DOM元素
-const skyTextures = {
-  default: '/modelFile/sky/sky3.hdr',
-  alternate: '/modelFile/sky/sky4.hdr'
-}
+const skyTextures = reactive(['/sky1.hdr', '/sky2.hdr', '/sky3.hdr', '/sky4.hdr'])
+const skyIndex = ref(0)
 
 // 获取模型URL
 const loadModelUrl = async () => {
+  const loadingInstance = ElLoading.service({
+    target: boxRef.value,
+    text: '加载模型中...',
+    background: 'rgba(0, 0, 0, 0.7)'
+  })
+
   try {
-    console.log(props.modelId)
+    // console.log(props.modelId)
 
     const response = await queryAttachmentInfoByIds([props.modelId])
     if (response && response.data && response.data.length > 0) {
@@ -36,6 +41,8 @@ const loadModelUrl = async () => {
     }
   } catch (error) {
     console.error('获取模型URL失败:', error)
+  } finally {
+    loadingInstance.close()
   }
 }
 
@@ -62,28 +69,15 @@ const getThreeJs = async () => {
   renderer.setPixelRatio(window.devicePixelRatio)
   boxRef.value.appendChild(renderer.domElement)
 
-  //天空球
-  const rgbeLoader = new RGBELoader()
-  rgbeLoader.load(skyTextures.default, 
-    function (envMap) {
-      scene.environment = envMap
-      envMap.mapping = THREE.EquirectangularReflectionMapping
-      scene.background = envMap
-    },
-    undefined,
-    function (error) {
-      console.error('加载天空球纹理失败:', error)
-    }
-  )
-
   // 添加辅助坐标
-//   const axesHelper = new THREE.AxesHelper(5)
-//   scene.add(axesHelper)
+  //   const axesHelper = new THREE.AxesHelper(5)
+  //   scene.add(axesHelper)
 
   //轨道环绕
   const controls = new OrbitControls(camera, renderer.domElement)
   controls.enableDamping = true //惯性效果
-  scene.add(controls)
+  // OrbitControls 不需要被添加到场景中，它只需要在动画循环中被更新即可
+  // scene.add(controls)
 
   //绘制地面网格
   const grid = new THREE.GridHelper(20, 40, 'red', 0xffffff)
@@ -91,6 +85,7 @@ const getThreeJs = async () => {
   grid.material.transparent = true
   scene.add(grid)
 
+  /* ===== 需要修改的部分 ===== */
   //灯光
   const ambient = new THREE.AmbientLight(0xffffff, 1)
   ambient.position.set(0, 300, 0)
@@ -110,9 +105,52 @@ const getThreeJs = async () => {
   // const spotLightHelper = new THREE.SpotLightHelper(spotLight1, 0xffffff)
   // scene.add(spotLightHelper);
 
+  /* ===== 需要修改的部分 ===== */
+  //车 Ford质质
+  const bodyMaterial = new THREE.MeshPhysicalMaterial({
+    color: 0x243563,
+    metalness: 0.8, //金属感
+    roughness: 0.5, //粗糙度
+    clearcoat: 1.0, //喷漆
+    clearcoatRoughness: 0.03 //喷漆粗糙度
+  })
+
+  //玻璃材质
+  const glassMaterial = new THREE.MeshPhysicalMaterial({
+    color: 0xffffff,
+    metalness: 0.25,
+    roughness: 0,
+    transmission: 1.0 //透光性 可以让很薄的透明表面，例如玻璃，变得更真实一些
+  })
+
+  //碳纤维材质
+  const carbonMaterial = new THREE.MeshPhysicalMaterial({
+    color: 'black',
+    metalness: 0.3,
+    roughness: 0.5,
+    clearcoat: 1.0,
+    clearcoatRoughness: 0.03
+  })
+
+  //铬材质
+  const chromeMaterial = new THREE.MeshPhysicalMaterial({
+    color: '#c0c0c0',
+    metalness: 1.0,
+    roughness: 0.2,
+    clearcoat: 1.0,
+    clearcoatRoughness: 0
+  })
+
+  /* ===== 需要修改的部分 ===== */
   //加载模型
   let leftdoors = []
   let rightdoors = []
+  const modelLoadingInstance = ElLoading.service({
+    target: boxRef.value,
+    text: '加载模型中...',
+    background: 'rgba(0, 0, 0, 0.7)'
+  })
+
   new GLTFLoader().load(modelUrl.value, function (gltf) {
     const carModel = gltf.scene
     carModel.position.set(0, 0, 0)
@@ -158,48 +196,14 @@ const getThreeJs = async () => {
         obj.material = chromeMaterial
       } else if (obj.name == 'DoorFrLeft' || obj.name == 'DoorRearLeft') {
         leftdoors.push(obj)
-        console.log(leftdoors)
+        // console.log(leftdoors)
       } else if (obj.name == 'DoorFrRight' || obj.name == 'DoorRearRight') {
         rightdoors.push(obj)
-        console.log(rightdoors)
+        // console.log(rightdoors)
       }
     })
     scene.add(carModel)
-  })
-
-  //车 Ford质质
-  const bodyMaterial = new THREE.MeshPhysicalMaterial({
-    color: 0x243563,
-    metalness: 0.8, //金属感
-    roughness: 0.5, //粗糙度
-    clearcoat: 1.0, //喷漆
-    clearcoatRoughness: 0.03 //喷漆粗糙度
-  })
-
-  //玻璃材质
-  const glassMaterial = new THREE.MeshPhysicalMaterial({
-    color: 0xffffff,
-    metalness: 0.25,
-    roughness: 0,
-    transmission: 1.0 //透光性 可以让很薄的透明表面，例如玻璃，变得更真实一些
-  })
-
-  //碳纤维材质
-  const carbonMaterial = new THREE.MeshPhysicalMaterial({
-    color: 'black',
-    metalness: 0.3,
-    roughness: 0.5,
-    clearcoat: 1.0,
-    clearcoatRoughness: 0.03
-  })
-
-  //铬材质
-  const chromeMaterial = new THREE.MeshPhysicalMaterial({
-    color: '#c0c0c0',
-    metalness: 1.0,
-    roughness: 0.2,
-    clearcoat: 1.0,
-    clearcoatRoughness: 0
+    modelLoadingInstance.close()
   })
 
   const obj = {
@@ -224,6 +228,8 @@ const getThreeJs = async () => {
   gui.add(obj, 'carSecondIn').name('车内第二视角')
   gui.add(obj, 'carOut').name('车外视角')
   gui.add(obj, 'skyChange').name('切换背景')
+
+  /* ===== 需要修改的部分 ===== */
   //打开车门
   function carOpen() {
     for (let index = 0; index < leftdoors.length; index++) {
@@ -278,20 +284,61 @@ const getThreeJs = async () => {
     })
     tween.start()
   }
-  //切换天空球
-  function skyChange() {
-    rgbeLoader.load(skyTextures.alternate, function (envMap) {
+
+
+  /* ===== 不需要动 ===== */
+  // 天空球
+  const rgbeLoader = new RGBELoader()
+  rgbeLoader.load(
+    skyTextures[skyIndex.value],
+    function (envMap) {
       scene.environment = envMap
       envMap.mapping = THREE.EquirectangularReflectionMapping
       scene.background = envMap
+    },
+    undefined,
+    function (error) {
+      console.error('加载天空球纹理失败:', error)
+    }
+  )
+
+  //切换天空球
+  function skyChange() {
+    skyIndex.value = (skyIndex.value + 1) % skyTextures.length
+    const skyLoadingInstance = ElLoading.service({
+      target: boxRef.value,
+      text: '切换背景中...',
+      background: 'rgba(0, 0, 0, 0.7)'
     })
+
+    rgbeLoader.load(
+      skyTextures[skyIndex.value],
+      function (envMap) {
+        scene.environment = envMap
+        envMap.mapping = THREE.EquirectangularReflectionMapping
+        scene.background = envMap
+        skyLoadingInstance.close()
+      },
+      undefined,
+      function (error) {
+        console.error('加载天空球纹理失败:', error)
+        skyLoadingInstance.close()
+      }
+    )
   }
+
+  // 创建一个时钟对象
+  const clock = new THREE.Clock()
   // 声明渲染函数
   function animate(time) {
     requestAnimationFrame(animate)
-    renderer.render(scene, camera)
-    TWEEN.update(time)
-    controls.update()
+    const delta = clock.getDelta() // 使用clock来获取帧间隔时间
+    if (delta < 0.1) {
+      // 如果帧间隔时间小于0.1秒，则进行渲染
+      renderer.render(scene, camera)
+      TWEEN.update(time)
+      controls.update()
+    }
   }
   animate()
 }

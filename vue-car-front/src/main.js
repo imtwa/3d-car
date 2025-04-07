@@ -6,7 +6,6 @@ import App from './App.vue'
 import router from './router'
 import { setupRouterGuard } from './router/guard'
 import '@/assets/styles/main.scss'
-import './index.css'
 
 const app = createApp(App)
 const pinia = createPinia()
