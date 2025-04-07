@@ -11,6 +11,10 @@ node 20+（或兼容 vue3 版本）
 
 Redis 3+
 
+#### 使用说明
+先开启mysql和redis服务，在后端.yml修改数据库连接信息、文件存储路径，执行car_three.sql脚本
+前端项目pnpm install，pnpm run dev启动即可
+
 #### 数据库脚本默认账号密码
 账号：admin
 
