@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-if="loading && error" class="car-ar-container">
+    <div v-if="loading || error" class="car-ar-container">
       <div v-if="loading" class="loading-container">
         <el-loading :fullscreen="true" />
       </div>

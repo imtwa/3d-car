@@ -14,6 +14,7 @@ Redis 3+
 #### 使用说明
 先开启mysql和redis服务，在后端.yml修改数据库连接信息、文件存储路径，执行car_three.sql脚本
 前端项目pnpm install，pnpm run dev启动即可
+vue-car-front项目需在public下放置天空球 sky1.hdr 文件，否则3D展示效果不佳
 
 #### 数据库脚本默认账号密码
 账号：admin

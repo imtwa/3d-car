@@ -156,6 +156,9 @@
             model="dragger"
           />
         </a-form-item>
+        <a-form-item label="模型组件路径" name="modelVue">
+          <a-input v-model:value="formData.modelVue" placeholder="请输入模型在前端项目中的组件路径" />
+        </a-form-item>
       </a-form>
     </a-modal>
   </a-card>
@@ -193,6 +196,7 @@ interface FormData {
   coverImageId?: string;
   imageIds?: string[];
   modelAttachmentId?: string;
+  modelVue?: string;
 }
 
 const columns = [
@@ -339,6 +343,7 @@ const handleAdd = () => {
     coverImageId: "",
     imageIds: "",
     modelAttachmentId: "",
+    modelVue: "",
   });
 };
 
@@ -356,6 +361,7 @@ const handleEdit = (record: any) => {
     coverImageId: record.coverImageId,
     imageIds: record.imageIds?.join(",") || "",
     modelAttachmentId: record.modelAttachmentId,
+    modelVue: record.modelVue || "",
   });
   console.log("编辑车型数据:", record);
 };
