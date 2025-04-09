@@ -48,6 +48,17 @@ const routes = [
         name: 'ForumPost',
         component: () => import('@/views/forum/PostView.vue'),
         meta: { requiresAuth: true }
+      },
+      {
+        path: 'forum/post/:id',
+        name: 'PostDetail',
+        component: () => import('@/views/forum/PostDetailView.vue')
+      },
+      {
+        path: 'forum/post/edit/:id',
+        name: 'EditPost',
+        component: () => import('@/views/forum/PostView.vue'),
+        meta: { requiresAuth: true }
       }
     ]
   },

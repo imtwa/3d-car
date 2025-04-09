@@ -1,5 +1,7 @@
 package com.lihua.car.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
@@ -11,57 +13,53 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 前台用户表
+ * 汽车评论表
  * </p>
  *
  * @author lihua
- * @since 2023-07-01
+ * @since 2024-01-01
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-public class CarUser implements Serializable {
+public class CarComment implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     /**
-     * 主键
+     * 评论ID
      */
+    @TableId
     @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
 
     /**
-     * 用户名
+     * 车型ID
      */
-    private String username;
+    private Long modelId;
 
     /**
-     * 密码
+     * 用户ID
      */
-    private String password;
+    private Long userId;
 
     /**
-     * 昵称
+     * 评论内容
      */
-    private String nickname;
+    private String content;
 
     /**
-     * 头像
+     * 评分(1-5)
      */
-    private String avatar;
+    private Integer rating;
 
     /**
-     * 性别
-     */
-    private String gender;
-
-    /**
-     * 用户状态
+     * 状态（0正常 1停用）
      */
     private String status;
 
     /**
-     * 逻辑删除标志
+     * 删除标志（0代表存在 1代表删除）
      */
     private String delFlag;
 
@@ -76,28 +74,14 @@ public class CarUser implements Serializable {
     private LocalDateTime updateTime;
 
     /**
-     * 最后登录时间
+     * 用户名称（非数据库字段）
      */
-    private LocalDateTime lastLoginTime;
+    @TableField(exist = false)
+    private String userName;
 
     /**
-     * 邮箱
+     * 车型名称（非数据库字段）
      */
-    private String email;
-
-    /**
-     * 手机号码
-     */
-    private String phoneNumber;
-
-    /**
-     * 备注
-     */
-    private String remark;
-
-    /**
-     * 注册类型 0 管理员新增，1 用户自助注册
-     */
-    private String registerType;
-
-}
+    @TableField(exist = false)
+    private String modelName;
+} 

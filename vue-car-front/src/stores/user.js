@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { userApi } from '@/api/user'
 
 export const useUserStore = defineStore('user', () => {
@@ -16,6 +16,7 @@ export const useUserStore = defineStore('user', () => {
         const tokenWithPrefix = res.data.token.startsWith('Bearer ') ? res.data.token : `Bearer ${res.data.token}`
         token.value = tokenWithPrefix
         userInfo.value = res.data.user
+        
         isLoggedIn.value = true
         localStorage.setItem('token', tokenWithPrefix)
         return true
@@ -98,10 +99,14 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  // 计算属性：获取用户ID
+  const userId = computed(() => userInfo.value?.id)
+
   return {
     token,
     userInfo,
     isLoggedIn,
+    userId,
     login,
     getUserInfo,
     logout,
