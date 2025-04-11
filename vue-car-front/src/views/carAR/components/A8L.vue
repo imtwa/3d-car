@@ -233,7 +233,7 @@ const getThreeJs = async () => {
   })
 
   const obj = {
-    color: 0x243563,
+    color: 0x545454,
     carOpen,
     carClose,
     carFirstIn,
