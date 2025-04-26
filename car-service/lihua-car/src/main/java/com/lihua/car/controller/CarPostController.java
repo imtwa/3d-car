@@ -138,4 +138,24 @@ public class CarPostController extends BaseController {
     public String deleteComment(@PathVariable("id") Long id, @RequestParam("userId") Long userId) {
         return success(postService.deleteComment(id, userId));
     }
+
+    /**
+     * 获取用户发布的帖子
+     */
+    @GetMapping("/user/posts/{userId}")
+    public String getUserPosts(@PathVariable("userId") Long userId,
+                               @RequestParam(value = "pageNum", defaultValue = "1") int pageNum,
+                               @RequestParam(value = "pageSize", defaultValue = "10") int pageSize) {
+        return success(postService.getUserPosts(userId, pageNum, pageSize));
+    }
+
+    /**
+     * 获取用户评论
+     */
+    @GetMapping("/user/comments/{userId}")
+    public String getUserComments(@PathVariable("userId") Long userId,
+                                 @RequestParam(value = "pageNum", defaultValue = "1") int pageNum,
+                                 @RequestParam(value = "pageSize", defaultValue = "10") int pageSize) {
+        return success(postService.getUserComments(userId, pageNum, pageSize));
+    }
 }

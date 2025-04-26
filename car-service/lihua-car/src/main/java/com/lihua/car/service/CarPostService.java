@@ -70,6 +70,26 @@ public interface CarPostService {
     List<CarPost> searchPosts(String keyword, Long userId);
 
     /**
+     * 获取用户发布的帖子
+     *
+     * @param userId 用户ID
+     * @param pageNum 页码
+     * @param pageSize 每页数量
+     * @return 帖子列表
+     */
+    IPage<CarPost> getUserPosts(Long userId, int pageNum, int pageSize);
+
+    /**
+     * 获取用户评论过的帖子以及评论内容
+     * 
+     * @param userId 用户ID
+     * @param pageNum 页码
+     * @param pageSize 每页数量
+     * @return 评论列表
+     */
+    IPage<CarPostComment> getUserComments(Long userId, int pageNum, int pageSize);
+
+    /**
      * 新增帖子
      *
      * @param post 帖子信息

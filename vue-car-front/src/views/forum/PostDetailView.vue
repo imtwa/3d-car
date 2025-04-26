@@ -54,16 +54,8 @@
         />
       </div>
       
-      <!-- 帖子操作：点赞、收藏 -->
+      <!-- 帖子操作：收藏、分享 -->
       <div class="post-actions-bar">
-        <div 
-          class="action-item" 
-          :class="{ 'active': post.isLiked }" 
-          @click="handleLike"
-        >
-          <el-icon><ThumbsUp /></el-icon>
-          <span>点赞 {{ post.likeCount || 0 }}</span>
-        </div>
         <div 
           class="action-item" 
           :class="{ 'active': post.isCollected }" 
@@ -85,6 +77,7 @@
         @comment-added="handleCommentAdded" 
         @comment-deleted="handleCommentDeleted"
         @show-login="showLoginDialog"
+        @refresh-comments="fetchComments"
       />
     </template>
     
@@ -104,8 +97,8 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { ArrowLeft, ThumbsUp, Star, Share, MoreFilled } from '@element-plus/icons-vue'
-import { getForumPostDetail, likeForumPost, unlikeForumPost, pinForumPost, unpinForumPost, deleteForumPost, getPostComments } from '@/api/forum'
+import { ArrowLeft, Star, Share, MoreFilled } from '@element-plus/icons-vue'
+import { getForumPostDetail, pinForumPost, unpinForumPost, deleteForumPost, getPostComments, collectForumPost, uncollectForumPost } from '@/api/forum'
 import CommentSection from './components/CommentSection.vue'
 import LoginDialog from '@/components/LoginDialog.vue'
 
@@ -154,65 +147,79 @@ const fetchPostDetail = async () => {
   try {
     const response = await getForumPostDetail(postId.value)
     post.value = response.data
-    fetchComments()
+    // 从帖子详情中提取评论数据
+    if (post.value && post.value.comments) {
+      processComments(post.value.comments)
+    } else {
+      comments.value = []
+    }
   } catch (error) {
     console.error('获取帖子详情失败', error)
     ElMessage.error('获取帖子详情失败')
     post.value = null
+    comments.value = []
   } finally {
     loading.value = false
   }
 }
 
-// 获取评论列表
+// 处理评论数据，确保每个评论都有author字段
+const processComments = (commentsList) => {
+  comments.value = commentsList.map(comment => {
+    // 如果评论没有author字段，从user字段构建一个
+    if (!comment.author && comment.user) {
+      comment.author = {
+        id: comment.user.id,
+        username: comment.user.username || comment.user.nickname || '未知用户',
+        avatar: comment.user.avatar || '/avatar/default.png'
+      }
+    }
+    return comment
+  })
+}
+
+// 获取评论列表 - 只用于刷新评论，复用帖子详情接口
 const fetchComments = async () => {
   try {
-    const response = await getPostComments(postId.value)
-    comments.value = response.data
+    const response = await getForumPostDetail(postId.value)
+    if (response.data && response.data.comments) {
+      processComments(response.data.comments)
+    } else {
+      comments.value = []
+    }
   } catch (error) {
     console.error('获取评论列表失败', error)
     comments.value = []
   }
 }
 
-// 处理点赞
-const handleLike = async () => {
-  if (!userStore.isLoggedIn) {
-    showLoginDialog.value = true
-    return
-  }
-  
-  try {
-    if (post.value.isLiked) {
-      await unlikeForumPost(post.value.id, userStore.userId)
-      post.value = { 
-        ...post.value, 
-        isLiked: false,
-        likeCount: post.value.likeCount - 1 
-      }
-    } else {
-      await likeForumPost(post.value.id, userStore.userId)
-      post.value = { 
-        ...post.value, 
-        isLiked: true,
-        likeCount: post.value.likeCount + 1 
-      }
-    }
-  } catch (error) {
-    console.error('点赞操作失败', error)
-  }
-}
-
 // 处理收藏
-const handleCollect = () => {
+const handleCollect = async () => {
   if (!userStore.isLoggedIn) {
     showLoginDialog()
     return
   }
   
-  // TODO: 实现收藏功能
-  post.value.isCollected = !post.value.isCollected
-  ElMessage.success(post.value.isCollected ? '收藏成功' : '已取消收藏')
+  try {
+    if (post.value.isCollected) {
+      await uncollectForumPost(post.value.id, userStore.userId)
+      post.value = { 
+        ...post.value, 
+        isCollected: false
+      }
+      ElMessage.success('已取消收藏')
+    } else {
+      await collectForumPost(post.value.id, userStore.userId)
+      post.value = { 
+        ...post.value, 
+        isCollected: true
+      }
+      ElMessage.success('收藏成功')
+    }
+  } catch (error) {
+    console.error('收藏操作失败', error)
+    ElMessage.error('操作失败，请稍后重试')
+  }
 }
 
 // 分享帖子

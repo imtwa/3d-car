@@ -8,9 +8,11 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lihua.car.dto.CarPostDTO;
 import com.lihua.car.entity.CarPost;
+import com.lihua.car.entity.CarPostCollection;
 import com.lihua.car.entity.CarPostComment;
 import com.lihua.car.entity.CarPostLike;
 import com.lihua.car.entity.CarUser;
+import com.lihua.car.mapper.CarPostCollectionMapper;
 import com.lihua.car.mapper.CarPostCommentMapper;
 import com.lihua.car.mapper.CarPostLikeMapper;
 import com.lihua.car.mapper.CarPostMapper;
@@ -53,6 +55,9 @@ public class CarPostServiceImpl extends ServiceImpl<CarPostMapper, CarPost> impl
     @Autowired
     private CarUserMapper userMapper;
 
+    @Autowired
+    private CarPostCollectionMapper collectionMapper;
+
     @Override
     public IPage<CarPost> queryPage(CarPostDTO dto) {
 
@@ -83,12 +88,13 @@ public class CarPostServiceImpl extends ServiceImpl<CarPostMapper, CarPost> impl
         // 查询结果
         IPage<CarPost> result = postMapper.selectPage(page, queryWrapper);
 
-        // 如果有结果且有用户ID，填充用户信息和点赞状态
+        // 如果有结果且有用户ID，填充用户信息、点赞状态和收藏状态
         if (result.getRecords().size() > 0) {
             fillUserInfo(result.getRecords());
             
             if (dto.getUserId() != null) {
                 fillPostLikeStatus(result.getRecords(), dto.getUserId());
+                fillPostCollectionStatus(result.getRecords(), dto.getUserId());
             }
         }
         
@@ -139,6 +145,7 @@ public class CarPostServiceImpl extends ServiceImpl<CarPostMapper, CarPost> impl
             
             if (userId != null) {
                 fillPostLikeStatus(posts, userId);
+                fillPostCollectionStatus(posts, userId);
             }
         }
         
@@ -188,11 +195,19 @@ public class CarPostServiceImpl extends ServiceImpl<CarPostMapper, CarPost> impl
             }
         }
         
-        // 填充点赞状态
+        // 填充点赞状态和收藏状态
         if (userId != null) {
+            // 点赞状态
             boolean liked = postLikeMapper.checkUserLiked(id, userId) > 0;
             post.setHasLiked(liked);
             post.setIsLiked(liked);
+            
+            // 收藏状态
+            LambdaQueryWrapper<CarPostCollection> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(CarPostCollection::getPostId, id)
+                    .eq(CarPostCollection::getUserId, userId);
+            boolean collected = collectionMapper.selectCount(queryWrapper) > 0;
+            post.setIsCollected(collected);
         }
         
         // 查询评论
@@ -214,6 +229,7 @@ public class CarPostServiceImpl extends ServiceImpl<CarPostMapper, CarPost> impl
             
             if (userId != null) {
                 fillPostLikeStatus(posts, userId);
+                fillPostCollectionStatus(posts, userId);
             }
         }
         
@@ -532,5 +548,141 @@ public class CarPostServiceImpl extends ServiceImpl<CarPostMapper, CarPost> impl
         }
         
         post.setComments(rootComments);
+    }
+
+    /**
+     * 获取用户发布的帖子
+     *
+     * @param userId 用户ID
+     * @param pageNum 页码
+     * @param pageSize 每页数量
+     * @return 帖子列表
+     */
+    @Override
+    public IPage<CarPost> getUserPosts(Long userId, int pageNum, int pageSize) {
+        IPage<CarPost> page = new Page<>(pageNum, pageSize);
+        LambdaQueryWrapper<CarPost> queryWrapper = new LambdaQueryWrapper<>();
+        
+        // 添加用户ID查询条件
+        queryWrapper.eq(CarPost::getUserId, userId);
+        
+        // 未删除的帖子
+        queryWrapper.eq(CarPost::getDelFlag, "0");
+        
+        // 正常状态的帖子
+        queryWrapper.eq(CarPost::getStatus, "0");
+        
+        // 按创建时间降序排序
+        queryWrapper.orderByDesc(CarPost::getCreateTime);
+        
+        // 查询结果
+        IPage<CarPost> result = postMapper.selectPage(page, queryWrapper);
+        
+        // 填充用户信息
+        if (result.getRecords().size() > 0) {
+            fillUserInfo(result.getRecords());
+            fillPostLikeStatus(result.getRecords(), userId);
+            fillPostCollectionStatus(result.getRecords(), userId);
+        }
+        
+        return result;
+    }
+    
+    /**
+     * 获取用户评论过的帖子以及评论内容
+     * 
+     * @param userId 用户ID
+     * @param pageNum 页码
+     * @param pageSize 每页数量
+     * @return 评论列表
+     */
+    @Override
+    public IPage<CarPostComment> getUserComments(Long userId, int pageNum, int pageSize) {
+        IPage<CarPostComment> page = new Page<>(pageNum, pageSize);
+        LambdaQueryWrapper<CarPostComment> queryWrapper = new LambdaQueryWrapper<>();
+        
+        // 添加用户ID查询条件
+        queryWrapper.eq(CarPostComment::getUserId, userId);
+        
+        // 未删除的评论
+        queryWrapper.eq(CarPostComment::getDelFlag, "0");
+        
+        // 正常状态的评论
+        queryWrapper.eq(CarPostComment::getStatus, "0");
+        
+        // 按创建时间降序排序
+        queryWrapper.orderByDesc(CarPostComment::getCreateTime);
+        
+        // 查询结果
+        IPage<CarPostComment> result = commentMapper.selectPage(page, queryWrapper);
+        
+        // 关联帖子和用户信息
+        if (result.getRecords().size() > 0) {
+            for (CarPostComment comment : result.getRecords()) {
+                // 获取评论所属的帖子
+                CarPost post = postMapper.selectById(comment.getPostId());
+                if (post != null && "0".equals(post.getDelFlag()) && "0".equals(post.getStatus())) {
+                    comment.setPost(post);
+                }
+                
+                // 设置用户信息
+                if (comment.getUserId() != null) {
+                    CarUser user = userMapper.selectById(comment.getUserId());
+                    if (user != null) {
+                        comment.setUser(user);
+                        
+                        // 创建评论作者信息
+                        Map<String, Object> author = new HashMap<>();
+                        author.put("id", user.getId());
+                        author.put("username", user.getUsername() != null ? user.getUsername() : user.getNickname());
+                        
+                        // 设置默认头像或使用用户头像
+                        String avatar = user.getAvatar();
+                        if (avatar == null || avatar.isEmpty()) {
+                            // 使用默认头像
+                            avatar = "/avatar/default.png";
+                        }
+                        author.put("avatar", avatar);
+                        
+                        // 设置author字段
+                        comment.setAuthor(author);
+                    }
+                }
+            }
+        }
+        
+        return result;
+    }
+
+    /**
+     * 填充帖子收藏状态
+     */
+    private void fillPostCollectionStatus(List<CarPost> posts, Long userId) {
+        // 收集所有帖子ID
+        List<Long> postIds = posts.stream()
+            .map(CarPost::getId)
+            .collect(Collectors.toList());
+        
+        if (CollectionUtils.isEmpty(postIds)) {
+            return;
+        }
+        
+        // 查询用户的收藏记录
+        LambdaQueryWrapper<CarPostCollection> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.in(CarPostCollection::getPostId, postIds)
+                .eq(CarPostCollection::getUserId, userId);
+        List<CarPostCollection> collections = collectionMapper.selectList(queryWrapper);
+        
+        // 构建帖子ID到收藏状态的映射
+        Map<Long, Boolean> collectionMap = new HashMap<>();
+        for (CarPostCollection collection : collections) {
+            collectionMap.put(collection.getPostId(), true);
+        }
+        
+        // 填充收藏状态
+        for (CarPost post : posts) {
+            boolean collected = collectionMap.getOrDefault(post.getId(), false);
+            post.setIsCollected(collected);
+        }
     }
 }

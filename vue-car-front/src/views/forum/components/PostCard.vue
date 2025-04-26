@@ -76,7 +76,7 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ChatLineRound, Star , MoreFilled } from '@element-plus/icons-vue'
-import { likeForumPost, unlikeForumPost, pinForumPost, unpinForumPost, deleteForumPost } from '@/api/forum'
+import { likeForumPost, unlikeForumPost, pinForumPost, unpinForumPost, deleteForumPost, collectForumPost, uncollectForumPost } from '@/api/forum'
 
 const props = defineProps({
   post: {
@@ -152,17 +152,32 @@ const handleLike = async () => {
 }
 
 // 处理收藏
-const handleCollect = () => {
+const handleCollect = async () => {
   if (!userStore.isLoggedIn) {
     ElMessage.warning('请先登录')
     return
   }
   
-  // TODO: 实现收藏功能
-  emit('update:post', { 
-    ...props.post, 
-    isCollected: !props.post.isCollected 
-  })
+  try {
+    if (props.post.isCollected) {
+      await uncollectForumPost(props.post.id, userStore.userId)
+      emit('update:post', { 
+        ...props.post, 
+        isCollected: false
+      })
+      ElMessage.success('已取消收藏')
+    } else {
+      await collectForumPost(props.post.id, userStore.userId)
+      emit('update:post', { 
+        ...props.post, 
+        isCollected: true
+      })
+      ElMessage.success('收藏成功')
+    }
+  } catch (error) {
+    console.error('收藏操作失败', error)
+    ElMessage.error('操作失败，请稍后重试')
+  }
 }
 
 // 处理编辑

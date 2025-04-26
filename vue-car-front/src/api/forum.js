@@ -73,10 +73,19 @@ export const unlikeForumPost = (id, userId) => {
   })
 }
 
-// 获取帖子评论
+// 获取帖子评论 (获取的是帖子详情，包含评论)
 export const getPostComments = (postId, params) => {
   return request({
     url: `/car/post/${postId}`,
+    method: 'get',
+    params
+  })
+}
+
+// 获取指定帖子的评论列表 (专用于获取评论)
+export const getPostCommentsList = (postId, params) => {
+  return request({
+    url: `/car/post/comments/${postId}`,
     method: 'get',
     params
   })
@@ -127,6 +136,78 @@ export const uploadPostImage = (formData) => {
     data: formData,
     headers: {
       'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+
+// 收藏帖子
+export const collectForumPost = (postId, userId) => {
+  return request({
+    url: '/car/post/collection/collect',
+    method: 'post',
+    params: { 
+      postId,
+      userId 
+    }
+  })
+}
+
+// 取消收藏帖子
+export const uncollectForumPost = (postId, userId) => {
+  return request({
+    url: '/car/post/collection/uncollect',
+    method: 'post',
+    params: { 
+      postId,
+      userId 
+    }
+  })
+}
+
+// 检查用户是否已收藏帖子
+export const checkPostCollected = (postId, userId) => {
+  return request({
+    url: '/car/post/collection/check',
+    method: 'get',
+    params: { 
+      postId,
+      userId 
+    }
+  })
+}
+
+// 获取用户收藏的帖子
+export const getUserCollections = (userId, pageNum = 1, pageSize = 10) => {
+  return request({
+    url: `/car/post/collection/user/${userId}`,
+    method: 'get',
+    params: { 
+      pageNum,
+      pageSize 
+    }
+  })
+}
+
+// 获取用户发布的帖子
+export const getUserPosts = (userId, pageNum = 1, pageSize = 10) => {
+  return request({
+    url: `/car/post/user/posts/${userId}`,
+    method: 'get',
+    params: { 
+      pageNum,
+      pageSize 
+    }
+  })
+}
+
+// 获取用户的评论
+export const getUserComments = (userId, pageNum = 1, pageSize = 10) => {
+  return request({
+    url: `/car/post/user/comments/${userId}`,
+    method: 'get',
+    params: { 
+      pageNum,
+      pageSize 
     }
   })
 }

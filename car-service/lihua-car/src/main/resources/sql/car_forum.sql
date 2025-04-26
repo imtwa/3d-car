@@ -57,3 +57,19 @@ CREATE TABLE `car_post_like` (
   UNIQUE KEY `uk_post_user` (`post_id`,`user_id`),
   CONSTRAINT `fk_like_post` FOREIGN KEY (`post_id`) REFERENCES `car_post` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='帖子点赞表';
+
+-- ----------------------------
+-- Table structure for car_post_collection
+-- ----------------------------
+DROP TABLE IF EXISTS `car_post_collection`;
+CREATE TABLE `car_post_collection` (
+  `id` bigint NOT NULL COMMENT '收藏ID',
+  `user_id` bigint NOT NULL COMMENT '用户ID',
+  `post_id` bigint NOT NULL COMMENT '帖子ID',
+  `create_time` datetime DEFAULT NULL COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  INDEX `idx_car_post_collection_user_id` (`user_id`) USING BTREE,
+  INDEX `idx_car_post_collection_post_id` (`post_id`) USING BTREE,
+  CONSTRAINT `fk_car_post_collection_user` FOREIGN KEY (`user_id`) REFERENCES `car_user` (`id`),
+  CONSTRAINT `fk_car_post_collection_post` FOREIGN KEY (`post_id`) REFERENCES `car_post` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='帖子收藏表'; 

@@ -86,7 +86,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['comment-added', 'comment-deleted', 'show-login'])
+const emit = defineEmits(['comment-added', 'comment-deleted', 'show-login', 'refresh-comments'])
 
 const userStore = useUserStore()
 const commentContent = ref('')
@@ -143,7 +143,8 @@ const submitComment = async () => {
   try {
     const commentData = {
       content: commentContent.value,
-      postId: props.postId
+      postId: props.postId,
+      userId: userStore.userId
     }
     
     if (replyTo.value) {
@@ -152,26 +153,19 @@ const submitComment = async () => {
     
     const response = await addComment(props.postId, commentData)
     
-    // 构建新评论对象
-    const newComment = {
-      id: response.data.id,
-      content: commentContent.value,
-      createTime: new Date().toISOString(),
-      author: {
-        id: userStore.userId,
-        username: userStore.userInfo.username,
-        avatar: userStore.userInfo.avatar
-      },
-      replyTo: replyTo.value
+    // 检查评论是否添加成功
+    if (response.code === 200) {
+      // 触发更新评论列表的事件，让父组件重新请求最新评论
+      emit('refresh-comments')
+      commentContent.value = ''
+      replyTo.value = null
+      ElMessage.success('评论发布成功')
+    } else {
+      ElMessage.error('评论发布失败：' + (response.msg || '未知错误'))
     }
-    
-    emit('comment-added', newComment)
-    commentContent.value = ''
-    replyTo.value = null
-    ElMessage.success('评论发布成功')
   } catch (error) {
     console.error('评论发布失败', error)
-    ElMessage.error('评论发布失败')
+    ElMessage.error('评论发布失败：' + (error.response?.data?.msg || '未知错误'))
   }
 }
 

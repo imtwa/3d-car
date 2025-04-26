@@ -11,6 +11,7 @@ import lombok.experimental.Accessors;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -103,4 +104,44 @@ public class CarPostComment implements Serializable {
      */
     @TableField(exist = false)
     private CarUser parentUser;
+
+    /**
+     * 帖子对象（非数据库字段）
+     */
+    @TableField(exist = false)
+    private CarPost post;
+    
+    /**
+     * 评论作者信息（非数据库字段）
+     */
+    @TableField(exist = false)
+    private Map<String, Object> author;
+    
+    /**
+     * 获取帖子对象
+     */
+    public CarPost getPost() {
+        return post;
+    }
+    
+    /**
+     * 设置帖子对象
+     */
+    public void setPost(CarPost post) {
+        this.post = post;
+    }
+    
+    /**
+     * 获取评论作者信息
+     */
+    public Map<String, Object> getAuthor() {
+        return author;
+    }
+    
+    /**
+     * 设置评论作者信息
+     */
+    public void setAuthor(Map<String, Object> author) {
+        this.author = author;
+    }
 } 
