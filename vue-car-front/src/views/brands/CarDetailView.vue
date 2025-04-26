@@ -13,6 +13,7 @@
             :src="image.url"
             :alt="`${carData.name} - 图片 ${index + 1}`"
             class="fullscreen-image"
+            loading="eager"
           />
 
           <!-- 图片上的文字描述 -->
@@ -77,7 +78,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onBeforeUnmount, computed } from 'vue'
+import { ref, reactive, onMounted, onBeforeUnmount, computed, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElLoading, ElMessage } from 'element-plus'
 import { ArrowLeft, ArrowDown } from '@element-plus/icons-vue'
@@ -91,6 +92,24 @@ const carId = route.params.id
 const scrollContainer = ref(null)
 const currentSectionIndex = ref(0)
 const isScrolling = ref(false)
+const imagesLoaded = ref(false)
+
+// 显示Loading直到图片加载完成
+const loadingInstance = ref(null)
+const showLoading = () => {
+  loadingInstance.value = ElLoading.service({
+    target: '.car-detail-view',
+    text: '加载中...',
+    background: 'rgba(0, 0, 0, 0.7)'
+  })
+}
+
+const hideLoading = () => {
+  if (loadingInstance.value) {
+    loadingInstance.value.close()
+    loadingInstance.value = null
+  }
+}
 
 // 车型数据
 const carData = ref({})
@@ -129,12 +148,9 @@ const formatPrice = price => {
 
 // 获取车型详情数据
 const fetchCarDetail = async () => {
-  const loading = ElLoading.service({
-    target: '.car-detail-view',
-    text: '加载中...',
-    background: 'rgba(0, 0, 0, 0.7)'
-  })
-
+  showLoading()
+  imagesLoaded.value = false
+  
   try {
     const res = await getCarModelSelectId(carId)
     carData.value = res.data || {}
@@ -149,6 +165,7 @@ const fetchCarDetail = async () => {
         console.error('解析参数失败:', e)
       }
     }
+    
     // 获取所有相关图片
     const allImageIds = [...(carData.value.imageIds || []), carData.value.coverImageId].filter(
       Boolean
@@ -159,19 +176,8 @@ const fetchCarDetail = async () => {
       const imageResult = await queryAttachmentInfoByIds(allImageIds)
       const images = imageResult.data || []
 
-      // 处理封面图片
-      // if (carData.coverImageId && images.length > 0) {
-      //   const coverImage = images.find(img => img.id === carData.coverImageId)
-      //   if (coverImage) {
-      //     carImages.value.push({
-      //       id: coverImage.id,
-      //       url: '/api' + coverImage.path,
-      //       text: (carData.parameters?.imageTxt && carData.parameters.imageTxt[0]) || null
-      //     })
-      //   }
-      // }
-
       // 处理其他图片
+      carImages.value = [] // 清空之前的图片
       if (carData.value.imageIds && carData.value.imageIds.length > 0) {
         carData.value.imageIds.forEach((imageId, index) => {
           const image = images.find(img => img.id === imageId)
@@ -186,19 +192,60 @@ const fetchCarDetail = async () => {
           }
         })
       }
+      
+      // 预加载第一张图片以确保可以正确显示
+      if (carImages.value.length > 0) {
+        const firstImg = new Image()
+        firstImg.onload = () => {
+          // 第一张图片加载完成后，设置状态并滚动
+          imagesLoaded.value = true
+          ensureFirstImage()
+          // 添加loaded类，移除加载前的覆盖层
+          document.querySelector('.car-detail-view')?.classList.add('loaded')
+        }
+        firstImg.src = carImages.value[0].url
+      } else {
+        imagesLoaded.value = true
+        hideLoading()
+        document.querySelector('.car-detail-view')?.classList.add('loaded')
+      }
+    } else {
+      imagesLoaded.value = true
+      hideLoading()
+      document.querySelector('.car-detail-view')?.classList.add('loaded')
     }
   } catch (error) {
     console.error('获取车型详情失败', error)
     ElMessage.error('获取车型详情失败')
-    useMockImages()
-  } finally {
-    loading.close()
+    imagesLoaded.value = true
+    hideLoading()
+    document.querySelector('.car-detail-view')?.classList.add('loaded')
   }
+}
+
+// 确保显示第一张图片
+const ensureFirstImage = () => {
+  if (!imagesLoaded.value || carImages.value.length === 0) return
+  
+  // 强制滚动到第一个图片
+  scrollToFirstSection()
+  hideLoading() // 隐藏loading
+}
+
+// 滚动到第一个section
+const scrollToFirstSection = () => {
+  // 等DOM更新
+  nextTick(() => {
+    if (scrollContainer.value) {
+      scrollContainer.value.scrollTop = 0
+      currentSectionIndex.value = 0
+    }
+  })
 }
 
 // 滚动到指定区块
 const scrollToSection = index => {
-  if (isScrolling.value) return
+  if (isScrolling.value && index !== 0) return // 允许强制滚动到第一张
   isScrolling.value = true
 
   let targetElement
@@ -209,7 +256,16 @@ const scrollToSection = index => {
   }
 
   if (targetElement) {
-    targetElement.scrollIntoView({ behavior: 'smooth' })
+    // 使用scrollTo而不是scrollIntoView，以获得更好的控制
+    if (scrollContainer.value) {
+      scrollContainer.value.scrollTo({
+        top: targetElement.offsetTop,
+        behavior: 'smooth'
+      })
+    } else {
+      targetElement.scrollIntoView({ behavior: 'smooth' })
+    }
+    
     currentSectionIndex.value = index
 
     // 重置滚动锁定
@@ -278,16 +334,19 @@ const handleKeyDown = e => {
 
 // 生命周期钩子
 onMounted(() => {
+  // 先获取数据
   fetchCarDetail()
-
+  
   // 添加事件监听器
-  if (scrollContainer.value) {
-    scrollContainer.value.addEventListener('scroll', handleScroll)
-    scrollContainer.value.addEventListener('touchstart', handleTouchStart)
-    scrollContainer.value.addEventListener('touchend', handleTouchEnd)
-  }
-
-  window.addEventListener('keydown', handleKeyDown)
+  nextTick(() => {
+    if (scrollContainer.value) {
+      scrollContainer.value.addEventListener('scroll', handleScroll)
+      scrollContainer.value.addEventListener('touchstart', handleTouchStart)
+      scrollContainer.value.addEventListener('touchend', handleTouchEnd)
+    }
+    
+    window.addEventListener('keydown', handleKeyDown)
+  })
 })
 
 onBeforeUnmount(() => {
@@ -305,12 +364,30 @@ onBeforeUnmount(() => {
 <style lang="scss" scoped>
 .car-detail-view {
   position: relative;
-
   width: 100%;
   height: calc(100vh - 60px);
   overflow: hidden;
   background-color: #000;
   color: #fff;
+  
+  // 防止加载前的闪烁
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    z-index: 1;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+  }
+  
+  &.loaded::before {
+    opacity: 0;
+    pointer-events: none;
+  }
 
   // 返回按钮
   .back-button {
