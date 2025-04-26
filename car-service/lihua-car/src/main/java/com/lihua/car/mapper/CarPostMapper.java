@@ -6,8 +6,6 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Update;
 
-import java.util.List;
-
 /**
  * <p>
  * 汽车论坛帖子表 Mapper 接口
@@ -18,22 +16,6 @@ import java.util.List;
  */
 @Mapper
 public interface CarPostMapper extends BaseMapper<CarPost> {
-
-    /**
-     * 获取热门帖子列表
-     *
-     * @param limit 限制数量
-     * @return 热门帖子列表
-     */
-    List<CarPost> selectHotPosts(@Param("limit") int limit);
-
-    /**
-     * 搜索帖子
-     *
-     * @param keyword 关键词
-     * @return 帖子列表
-     */
-    List<CarPost> searchPosts(@Param("keyword") String keyword);
     
     /**
      * 增加浏览次数

@@ -4,8 +4,21 @@ import { userApi } from '@/api/user'
 
 export const useUserStore = defineStore('user', () => {
   const token = ref(localStorage.getItem('token') || '')
-  const userInfo = ref({})
+  const userInfo = ref(JSON.parse(localStorage.getItem('userInfo') || '{}'))
   const isLoggedIn = ref(!!token.value)
+
+  // 初始化store
+  const initStore = async () => {
+    if (token.value) {
+      try {
+        await getUserInfo()
+      } catch (error) {
+        console.error('初始化用户信息失败:', error)
+        // 如果获取失败，可能是token过期，清除登录状态
+        logout()
+      }
+    }
+  }
 
   // 登录方法
   const login = async (loginData) => {
@@ -19,6 +32,7 @@ export const useUserStore = defineStore('user', () => {
         
         isLoggedIn.value = true
         localStorage.setItem('token', tokenWithPrefix)
+        localStorage.setItem('userInfo', JSON.stringify(res.data.user))
         return true
       }
       return false
@@ -31,11 +45,12 @@ export const useUserStore = defineStore('user', () => {
   // 获取用户信息
   const getUserInfo = async () => {
     try {
-      const res = await userApi.getUserInfo()
-      if (res.code === 200) {
-        userInfo.value = res.data
-        return true
-      }
+      // const res = await userApi.getUserInfo()
+      // if (res.code === 200) {
+      //   userInfo.value = res.data
+      //   localStorage.setItem('userInfo', JSON.stringify(res.data))
+      //   return true
+      // }
       return false
     } catch (error) {
       return false
@@ -51,6 +66,7 @@ export const useUserStore = defineStore('user', () => {
       userInfo.value = {}
       isLoggedIn.value = false
       localStorage.removeItem('token')
+      localStorage.removeItem('userInfo')
     }
   }
 
@@ -112,6 +128,7 @@ export const useUserStore = defineStore('user', () => {
     logout,
     register,
     checkUsername,
-    verifySlideCode
+    verifySlideCode,
+    initStore
   }
 })

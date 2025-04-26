@@ -109,9 +109,10 @@ public interface CarPostService {
      * 删除帖子
      *
      * @param id 帖子ID
-     * @return 结果
+     * @param userId 用户ID，用于权限验证
+     * @return 影响行数
      */
-    int deletePost(Long id);
+    int deletePost(Long id, Long userId);
     
     /**
      * 置顶/取消置顶帖子

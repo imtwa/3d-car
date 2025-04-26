@@ -315,7 +315,11 @@ const handleTabChange = tab => {
 // 页面加载时获取当前标签页数据
 onMounted(() => {
   if (userStore.isLoggedIn) {
-    handleTabChange(activeTab.value)
+    // 刷新用户信息
+    userStore.getUserInfo().then(() => {
+      // 加载当前标签页数据
+      handleTabChange(activeTab.value)
+    })
   }
 })
 </script>

@@ -50,8 +50,9 @@ export const updateForumPost = (id, data) => {
 // 删除帖子
 export const deleteForumPost = (id, userId) => {
   return request({
-    url: `/car/post/${id}`,
-    method: 'delete'
+    url: `/car/post/remove/${id}`,
+    method: 'post',
+    params: { userId }
   })
 }
 

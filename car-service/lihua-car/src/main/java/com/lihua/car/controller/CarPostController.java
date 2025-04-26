@@ -99,11 +99,12 @@ public class CarPostController extends BaseController {
     }
 
     /**
-     * 删除帖子
+     * 删除帖子 (POST方法)
      */
-    @DeleteMapping("/{id}")
-    public String deletePost(@PathVariable("id") Long id) {
-        return success(postService.deletePost(id));
+    @PostMapping("/remove/{id}")
+    public String removePost(@PathVariable("id") Long id, @RequestParam(value = "userId", required = false) Long userId) {
+        // 验证用户是否有权限删除帖子（管理员或帖子作者）
+        return success(postService.deletePost(id, userId));
     }
 
     /**

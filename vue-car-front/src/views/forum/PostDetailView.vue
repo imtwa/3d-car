@@ -68,6 +68,18 @@
           <el-icon><Share /></el-icon>
           <span>分享</span>
         </div>
+        
+        <!-- 添加编辑和删除按钮，仅在用户是作者时显示 -->
+        <div v-if="isAuthor" class="post-management-actions">
+          <div class="action-item" @click="handleEdit">
+            <el-icon><EditPen /></el-icon>
+            <span>编辑</span>
+          </div>
+          <div class="action-item delete" @click="handleDelete">
+            <el-icon><Delete /></el-icon>
+            <span>删除</span>
+          </div>
+        </div>
       </div>
       
       <!-- 评论区 -->
@@ -97,7 +109,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { ArrowLeft, Star, Share, MoreFilled } from '@element-plus/icons-vue'
+import { ArrowLeft, Star, Share, MoreFilled, EditPen, Delete } from '@element-plus/icons-vue'
 import { getForumPostDetail, pinForumPost, unpinForumPost, deleteForumPost, getPostComments, collectForumPost, uncollectForumPost } from '@/api/forum'
 import CommentSection from './components/CommentSection.vue'
 import LoginDialog from '@/components/LoginDialog.vue'
@@ -115,7 +127,7 @@ const loginDialogVisible = ref(false)
 // 计算属性：判断当前用户是否是帖子作者
 const isAuthor = computed(() => {
   if (!post.value || !userStore.isLoggedIn) return false
-  return userStore.userId === post.value.author.id
+  return userStore.userId === post.value.user.id
 })
 
 // 计算属性：判断当前用户是否是管理员
@@ -423,6 +435,17 @@ onMounted(() => {
         color: #409EFF;
         background-color: #ecf5ff;
       }
+      
+      &.delete:hover {
+        color: #F56C6C;
+        background-color: #fef0f0;
+      }
+    }
+    
+    .post-management-actions {
+      display: flex;
+      gap: 15px;
+      margin-left: auto;
     }
   }
   

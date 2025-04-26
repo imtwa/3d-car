@@ -116,7 +116,7 @@ const submitPost = async () => {
         const response = await createForumPost(postData)
         ElMessage.success('帖子发布成功')
         // 跳转到帖子详情页
-        router.push(`/forum/post/${response.data.id}`)
+        router.push(`/forum`)
         return
       }
       
@@ -140,7 +140,7 @@ const fetchPostDetail = async () => {
     const postData = response.data
     
     // 检查是否有权限编辑
-    if (postData.author.id !== userStore.userId && userStore.userInfo?.role !== 'admin') {
+    if (postData.user.id !== userStore.userId && userStore.userInfo?.role !== 'admin') {
       ElMessage.error('您没有权限编辑此帖子')
       router.push('/forum')
       return

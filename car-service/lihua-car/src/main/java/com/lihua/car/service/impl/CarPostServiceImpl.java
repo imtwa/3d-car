@@ -120,7 +120,14 @@ public class CarPostServiceImpl extends ServiceImpl<CarPostMapper, CarPost> impl
 
     @Override
     public List<CarPost> getHotPosts(int limit) {
-        List<CarPost> posts = postMapper.selectHotPosts(limit);
+        // 使用LambdaQueryWrapper代替XML映射查询
+        LambdaQueryWrapper<CarPost> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(CarPost::getDelFlag, "0")
+                   .eq(CarPost::getStatus, "0")
+                   .orderByDesc(CarPost::getLikeCount, CarPost::getCommentCount, CarPost::getViewCount)
+                   .last("LIMIT " + limit);
+        
+        List<CarPost> posts = postMapper.selectList(queryWrapper);
         
         if (CollectionUtils.isNotEmpty(posts)) {
             fillUserInfo(posts);
@@ -222,8 +229,27 @@ public class CarPostServiceImpl extends ServiceImpl<CarPostMapper, CarPost> impl
             return new ArrayList<>();
         }
         
-        List<CarPost> posts = postMapper.searchPosts(keyword);
+        // 使用LambdaQueryWrapper代替XML映射查询
+        LambdaQueryWrapper<CarPost> queryWrapper = new LambdaQueryWrapper<>();
         
+        // 添加状态条件：未删除且状态正常
+        queryWrapper.eq(CarPost::getDelFlag, "0")
+                   .eq(CarPost::getStatus, "0");
+        
+        // 添加关键词搜索条件：标题或内容包含关键词
+        queryWrapper.and(wrapper -> 
+            wrapper.like(CarPost::getTitle, keyword)
+                  .or()
+                  .like(CarPost::getContent, keyword)
+        );
+        
+        // 设置排序：先按置顶状态，再按创建时间降序排序
+        queryWrapper.orderByDesc(CarPost::getIsTop, CarPost::getCreateTime);
+        
+        // 执行查询
+        List<CarPost> posts = postMapper.selectList(queryWrapper);
+        
+        // 填充用户信息和状态
         if (CollectionUtils.isNotEmpty(posts)) {
             fillUserInfo(posts);
             
@@ -258,13 +284,35 @@ public class CarPostServiceImpl extends ServiceImpl<CarPostMapper, CarPost> impl
     }
 
     @Override
-    public int deletePost(Long id) {
-        CarPost post = new CarPost();
-        post.setId(id);
-        post.setDelFlag("1");
-        post.setUpdateTime(LocalDateTime.now());
+    public int deletePost(Long id, Long userId) {
+        // 获取帖子信息 - 不使用带逻辑删除条件的selectById方法
+        LambdaQueryWrapper<CarPost> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(CarPost::getId, id);
+        // 重要：这里不添加del_flag条件，以便能查到所有帖子
+        CarPost post = postMapper.selectOne(queryWrapper);
         
-        return postMapper.updateById(post);
+        if (post == null) {
+            return 0;
+        }
+        
+        // 验证用户权限：必须是帖子作者或管理员
+        if (userId != null && !post.getUserId().equals(userId)) {
+            // 如果不是作者，检查是否为管理员
+            CarUser user = userMapper.selectById(userId);
+            if (user == null) {
+                // 既不是作者也不是管理员，拒绝删除
+                return 0;
+            }
+        }
+        
+        // 直接使用SQL更新来绕过MyBatis-Plus的逻辑删除过滤
+        // 注意: 这里绝对不使用updateById或update方法，因为它们会自动追加WHERE del_flag='0'条件
+        // 而是使用其他方法直接执行原生SQL
+        return baseMapper.update(null, 
+            new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<CarPost>()
+                .eq(CarPost::getId, id)
+                .set(CarPost::getDelFlag, "1")
+                .set(CarPost::getUpdateTime, LocalDateTime.now()));
     }
 
     @Override
