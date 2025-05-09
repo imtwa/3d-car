@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div id="lihua-tian-captcha" class="tian-captcha"/>
+    <div id="lihua-tian-captcha" class="tian-captcha" />
     <div class="mask" v-if="showMask" @click.stop></div>
   </div>
 </template>
@@ -37,11 +37,11 @@ defineExpose({
 // 验证码配置
 const captchaConfig = {
   // 请求验证码接口
-  requestCaptchaDataUrl: baseURL + "/captcha/get",
+  requestCaptchaDataUrl: baseURL + '/captcha/get',
   // 验证验证码接口
-  validCaptchaUrl: baseURL + "/captcha/check",
+  validCaptchaUrl: baseURL + '/captcha/check',
   // 绑定div
-  bindEl: "#lihua-tian-captcha",
+  bindEl: '#lihua-tian-captcha',
   // 验证成功回调
   validSuccess: (res, c, tac) => {
     emit('success', res.data.id)
@@ -69,23 +69,23 @@ const captchaConfig = {
 // 主题样式
 const style = {
   // 按钮样式
-  btnUrl: "/tac/images/btn.png",
+  btnUrl: '/tac/images/btn.png',
   // 背景样式
   bgUrl: null,
   // logo地址
   logoUrl: null,
   // 滑块槽背景颜色
-  moveTrackMaskBgColor: "#f7b645",
+  moveTrackMaskBgColor: '#f7b645',
   // 滑块槽边框颜色
-  moveTrackMaskBorderColor: "#ef9c0d"
+  moveTrackMaskBorderColor: '#ef9c0d'
 }
 
 // 加载验证码
 const load = () => {
   showMask.value = true
-  window.initTAC("tac", captchaConfig, style).then((tac) => {
+  window.initTAC('tac', captchaConfig, style).then(tac => {
     // 初始化验证码
-    tac.init();
+    tac.init()
   })
 }
 

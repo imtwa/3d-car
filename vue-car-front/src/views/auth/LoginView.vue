@@ -13,10 +13,10 @@
         @keyup.enter="handleSubmit"
       >
         <el-form-item prop="username">
-          <el-input 
-            v-model="form.username" 
-            placeholder="用户名" 
-            :prefix-icon="User" 
+          <el-input
+            v-model="form.username"
+            placeholder="用户名"
+            :prefix-icon="User"
             @blur="isRegister && checkUsernameExist()"
           />
         </el-form-item>
@@ -79,7 +79,7 @@ const form = reactive({
 const checkUsernameExist = async () => {
   if (form.username && form.username.length >= 3) {
     const isAvailable = await userStore.checkUsername(form.username)
-    
+
     if (isAvailable) {
       ElMessage.warning('该用户名已被使用')
       return false
@@ -130,7 +130,7 @@ const handleSubmit = async () => {
         const usernameValid = await checkUsernameExist()
         if (!usernameValid) return
       }
-      
+
       // 显示滑块验证码
       if (captchaRef.value) {
         captchaRef.value.show()
@@ -139,7 +139,7 @@ const handleSubmit = async () => {
   })
 }
 
-const handleCaptchaSuccess = async (captchaId) => {
+const handleCaptchaSuccess = async captchaId => {
   loading.value = true
   try {
     if (isRegister.value) {
@@ -150,7 +150,7 @@ const handleCaptchaSuccess = async (captchaId) => {
         confirmPassword: form.confirmPassword,
         captchaId
       })
-      
+
       if (result.success) {
         ElMessage.success('注册成功，请登录')
         isRegister.value = false
@@ -169,7 +169,7 @@ const handleCaptchaSuccess = async (captchaId) => {
         password: form.password,
         captchaId
       })
-      
+
       if (success) {
         ElMessage.success('登录成功')
         router.push('/')

@@ -150,7 +150,7 @@ const formatPrice = price => {
 const fetchCarDetail = async () => {
   showLoading()
   imagesLoaded.value = false
-  
+
   try {
     const res = await getCarModelSelectId(carId)
     carData.value = res.data || {}
@@ -165,7 +165,7 @@ const fetchCarDetail = async () => {
         console.error('解析参数失败:', e)
       }
     }
-    
+
     // 获取所有相关图片
     const allImageIds = [...(carData.value.imageIds || []), carData.value.coverImageId].filter(
       Boolean
@@ -192,7 +192,7 @@ const fetchCarDetail = async () => {
           }
         })
       }
-      
+
       // 预加载第一张图片以确保可以正确显示
       if (carImages.value.length > 0) {
         const firstImg = new Image()
@@ -226,7 +226,7 @@ const fetchCarDetail = async () => {
 // 确保显示第一张图片
 const ensureFirstImage = () => {
   if (!imagesLoaded.value || carImages.value.length === 0) return
-  
+
   // 强制滚动到第一个图片
   scrollToFirstSection()
   hideLoading() // 隐藏loading
@@ -265,7 +265,7 @@ const scrollToSection = index => {
     } else {
       targetElement.scrollIntoView({ behavior: 'smooth' })
     }
-    
+
     currentSectionIndex.value = index
 
     // 重置滚动锁定
@@ -336,7 +336,7 @@ const handleKeyDown = e => {
 onMounted(() => {
   // 先获取数据
   fetchCarDetail()
-  
+
   // 添加事件监听器
   nextTick(() => {
     if (scrollContainer.value) {
@@ -344,7 +344,7 @@ onMounted(() => {
       scrollContainer.value.addEventListener('touchstart', handleTouchStart)
       scrollContainer.value.addEventListener('touchend', handleTouchEnd)
     }
-    
+
     window.addEventListener('keydown', handleKeyDown)
   })
 })
@@ -369,7 +369,7 @@ onBeforeUnmount(() => {
   overflow: hidden;
   background-color: #000;
   color: #fff;
-  
+
   // 防止加载前的闪烁
   &::before {
     content: '';
@@ -383,7 +383,7 @@ onBeforeUnmount(() => {
     opacity: 1;
     transition: opacity 0.3s ease;
   }
-  
+
   &.loaded::before {
     opacity: 0;
     pointer-events: none;

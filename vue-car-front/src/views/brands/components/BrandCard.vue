@@ -71,7 +71,7 @@ defineProps({
       line-height: 1.6;
       margin-bottom: 20px;
     }
-    
+
     .view-more-btn {
       margin-top: 8px;
       width: 120px;

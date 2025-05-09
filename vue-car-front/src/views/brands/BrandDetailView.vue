@@ -70,7 +70,7 @@
                 </div>
               </div>
             </div>
-      </div>
+          </div>
         </el-carousel-item>
       </el-carousel>
     </div>
@@ -159,7 +159,7 @@ async function fetchBrandData() {
 
       // 创建一个映射，以便快速查找封面图片URL
       const coverImageMap = coverImages.reduce((acc, img) => {
-        acc[img.id] = '/api' +  img.path
+        acc[img.id] = '/api' + img.path
         return acc
       }, {})
 
@@ -169,7 +169,6 @@ async function fetchBrandData() {
         coverImageUrl: coverImageMap[model.coverImageId] || '' // 如果没有找到URL，可以提供一个默认值或空字符串
       }))
     }
-
   } catch (error) {
     console.error('获取品牌信息失败:', error)
     ElMessage.error('获取品牌信息失败')
@@ -213,7 +212,7 @@ watch(() => route.params.id, fetchBrandData)
 <style lang="scss" scoped>
 .brand-detail {
   position: relative;
-  
+
   color: #fff;
   overflow: hidden;
 
@@ -243,8 +242,8 @@ watch(() => route.params.id, fetchBrandData)
         height: 50px;
         background-color: rgba(255, 255, 255, 0.9);
         border-radius: 50%;
-    display: flex;
-    align-items: center;
+        display: flex;
+        align-items: center;
         justify-content: center;
         cursor: pointer;
         box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
@@ -420,7 +419,7 @@ watch(() => route.params.id, fetchBrandData)
                   }
 
                   .spec-label {
-            font-size: 0.9rem;
+                    font-size: 0.9rem;
                     opacity: 0.7;
                   }
                 }

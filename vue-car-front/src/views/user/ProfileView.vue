@@ -5,7 +5,9 @@
       <div class="profile-header">
         <el-card class="profile-card">
           <div class="user-info">
-            <el-avatar :size="100" :src="userStore.userInfo.avatar || defaultAvatar" />
+            <el-avatar :size="100" :src="userStore.userInfo.username || defaultAvatar">
+              {{ userStore.userInfo.username }}
+            </el-avatar>
             <div class="info-details">
               <h2>{{ userStore.userInfo.username || '用户名' }}</h2>
               <p>注册时间：{{ formatDate(userStore.userInfo.createTime) || '2023-01-15' }}</p>

@@ -47,9 +47,12 @@ const emit = defineEmits(['update:modelValue'])
 const content = ref(props.modelValue)
 
 // 监听modelValue变化
-watch(() => props.modelValue, (newValue) => {
-  content.value = newValue
-})
+watch(
+  () => props.modelValue,
+  newValue => {
+    content.value = newValue
+  }
+)
 
 // 更新内容
 const updateContent = () => {

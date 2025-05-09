@@ -22,7 +22,9 @@
         <el-menu-item index="user">
           <template v-if="isLoggedIn">
             <el-dropdown>
-              <el-avatar :size="40" :src="avatarUrl" />
+              <el-avatar :size="40">
+                {{ userStore.userInfo.username.charAt(0) }}
+              </el-avatar>
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item @click="router.push('/user')">个人中心</el-dropdown-item>
@@ -60,8 +62,7 @@ const activeMenu = computed(() => {
 
 const avatarUrl = computed(
   () =>
-    userStore.userInfo.avatar ||
-    'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png'
+    userStore.userInfo.name || 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png'
 )
 
 const handleLogout = () => {
@@ -131,8 +132,8 @@ const handleLogout = () => {
     width: 100%;
     --el-menu-bg-color: transparent;
     --el-menu-text-color: #f5f5f7;
-    --el-menu-hover-text-color: #1E56A0;
-    --el-menu-active-color: #1E56A0;
+    --el-menu-hover-text-color: #1e56a0;
+    --el-menu-active-color: #1e56a0;
   }
 
   :deep(.el-menu-item) {
@@ -147,7 +148,6 @@ const handleLogout = () => {
     &.is-active {
       font-weight: 500;
       position: relative;
-      
     }
   }
 
@@ -162,7 +162,7 @@ const handleLogout = () => {
 
       &:hover {
         transform: scale(1.1);
-        border-color: #1E56A0;
+        border-color: #1e56a0;
       }
     }
   }

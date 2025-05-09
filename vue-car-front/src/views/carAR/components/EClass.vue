@@ -285,7 +285,6 @@ const getThreeJs = async () => {
     tween.start()
   }
 
-
   /* ===== 不需要动 ===== */
   // 天空球
   const rgbeLoader = new RGBELoader()

@@ -1,7 +1,7 @@
 import request from './request'
 
 // 获取帖子列表
-export const getForumPosts = (params) => {
+export const getForumPosts = params => {
   return request({
     url: '/car/post/page',
     method: 'post',
@@ -19,7 +19,7 @@ export const getPinnedPosts = (limit = 5, userId) => {
 }
 
 // 获取帖子详情
-export const getForumPostDetail = (id) => {
+export const getForumPostDetail = id => {
   return request({
     url: `/car/post/${id}`,
     method: 'get'
@@ -27,7 +27,7 @@ export const getForumPostDetail = (id) => {
 }
 
 // 创建帖子
-export const createForumPost = (data) => {
+export const createForumPost = data => {
   return request({
     url: '/car/post/add',
     method: 'post',
@@ -130,7 +130,7 @@ export const unpinForumPost = (id, userId) => {
 }
 
 // 上传帖子图片
-export const uploadPostImage = (formData) => {
+export const uploadPostImage = formData => {
   return request({
     url: '/system/attachment/storage/upload',
     method: 'post',
@@ -146,9 +146,9 @@ export const collectForumPost = (postId, userId) => {
   return request({
     url: '/car/post/collection/collect',
     method: 'post',
-    params: { 
+    params: {
       postId,
-      userId 
+      userId
     }
   })
 }
@@ -158,9 +158,9 @@ export const uncollectForumPost = (postId, userId) => {
   return request({
     url: '/car/post/collection/uncollect',
     method: 'post',
-    params: { 
+    params: {
       postId,
-      userId 
+      userId
     }
   })
 }
@@ -170,9 +170,9 @@ export const checkPostCollected = (postId, userId) => {
   return request({
     url: '/car/post/collection/check',
     method: 'get',
-    params: { 
+    params: {
       postId,
-      userId 
+      userId
     }
   })
 }
@@ -182,9 +182,9 @@ export const getUserCollections = (userId, pageNum = 1, pageSize = 10) => {
   return request({
     url: `/car/post/collection/user/${userId}`,
     method: 'get',
-    params: { 
+    params: {
       pageNum,
-      pageSize 
+      pageSize
     }
   })
 }
@@ -194,9 +194,9 @@ export const getUserPosts = (userId, pageNum = 1, pageSize = 10) => {
   return request({
     url: `/car/post/user/posts/${userId}`,
     method: 'get',
-    params: { 
+    params: {
       pageNum,
-      pageSize 
+      pageSize
     }
   })
 }
@@ -206,9 +206,9 @@ export const getUserComments = (userId, pageNum = 1, pageSize = 10) => {
   return request({
     url: `/car/post/user/comments/${userId}`,
     method: 'get',
-    params: { 
+    params: {
       pageNum,
-      pageSize 
+      pageSize
     }
   })
 }

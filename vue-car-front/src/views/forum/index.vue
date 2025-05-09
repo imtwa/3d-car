@@ -5,9 +5,7 @@
       <el-button type="primary" @click="router.push('/forum/post')" v-if="userStore.isLoggedIn">
         <el-icon><Plus /></el-icon> 发布帖子
       </el-button>
-      <el-button type="primary" @click="showLoginDialog" v-else>
-        登录发帖
-      </el-button>
+      <el-button type="primary" @click="showLoginDialog" v-else> 登录发帖 </el-button>
     </div>
 
     <div class="forum-filters">
@@ -15,7 +13,7 @@
         <el-tab-pane label="最新" name="latest"></el-tab-pane>
         <el-tab-pane label="热门" name="hot"></el-tab-pane>
       </el-tabs>
-      
+
       <div class="search-box">
         <el-input
           v-model="searchKeyword"
@@ -41,19 +39,19 @@
         :post="post"
         @deleted="handlePostDeleted"
         @unpinned="handlePostUnpinned"
-        @update:post="(updatedPost) => handlePostUpdate(updatedPost, index, 'pinned')"
+        @update:post="updatedPost => handlePostUpdate(updatedPost, index, 'pinned')"
       />
     </div>
 
     <!-- 帖子列表 -->
     <div class="post-list">
       <h2 class="section-title">{{ getTabTitle }}</h2>
-      
+
       <div v-if="loading" class="loading-container">
         <el-skeleton :rows="3" animated />
         <el-skeleton :rows="3" animated />
       </div>
-      
+
       <template v-else-if="posts.length > 0">
         <post-card
           v-for="(post, index) in posts"
@@ -61,9 +59,9 @@
           :post="post"
           @deleted="handlePostDeleted"
           @pinned="handlePostPinned"
-          @update:post="(updatedPost) => handlePostUpdate(updatedPost, index, 'regular')"
+          @update:post="updatedPost => handlePostUpdate(updatedPost, index, 'regular')"
         />
-        
+
         <div class="pagination-container">
           <el-pagination
             v-model:current-page="currentPage"
@@ -76,7 +74,7 @@
           />
         </div>
       </template>
-      
+
       <div v-else class="empty-state">
         <el-empty description="暂无帖子" />
         <el-button type="primary" @click="router.push('/forum/post')" v-if="userStore.isLoggedIn">
@@ -84,7 +82,7 @@
         </el-button>
       </div>
     </div>
-    
+
     <!-- 登录对话框 -->
     <login-dialog v-if="loginDialogVisible" @close="loginDialogVisible = false" />
   </div>
@@ -158,27 +156,27 @@ const fetchPosts = async () => {
     // } else {
     //   pinnedPosts.value = []
     // }
-    
+
     const params = {
       pageNum: currentPage.value,
       pageSize: pageSize.value,
       userId: userStore.userId || null
     }
-    
+
     // 根据标签页添加查询条件
     if (activeTab.value === 'hot') {
       params.orderBy = 'likeCount'
     }
-    
+
     // 添加搜索关键词
     if (searchKeyword.value) {
       params.keyword = searchKeyword.value
     }
-    
+
     const res = await getForumPosts(params)
     if (res.code === 200) {
       const data = res.data
-      
+
       // 只获取非置顶帖子
       posts.value = data.records || []
       total.value = data.total
@@ -218,13 +216,13 @@ const searchPosts = () => {
 }
 
 // 处理页码变化
-const handleCurrentChange = (page) => {
+const handleCurrentChange = page => {
   currentPage.value = page
   fetchPosts()
 }
 
 // 处理每页条数变化
-const handleSizeChange = (size) => {
+const handleSizeChange = size => {
   pageSize.value = size
   currentPage.value = 1
   fetchPosts()
@@ -250,13 +248,13 @@ const loadPinnedPosts = async () => {
 }
 
 // 处理帖子删除
-const handlePostDeleted = (postId) => {
+const handlePostDeleted = postId => {
   // 从普通帖子列表中移除
   posts.value = posts.value.filter(post => post.id !== postId)
-  
+
   // 从置顶帖子列表中移除
   pinnedPosts.value = pinnedPosts.value.filter(post => post.id !== postId)
-  
+
   // 更新总数
   if (total.value > 0) {
     total.value--
@@ -264,14 +262,14 @@ const handlePostDeleted = (postId) => {
 }
 
 // 处理帖子置顶
-const handlePostPinned = (postId) => {
+const handlePostPinned = postId => {
   // 重新加载置顶帖子和普通帖子列表
   loadPinnedPosts()
   loadPosts()
 }
 
 // 处理帖子取消置顶
-const handlePostUnpinned = (postId) => {
+const handlePostUnpinned = postId => {
   // 重新加载置顶帖子和普通帖子列表
   loadPinnedPosts()
   loadPosts()
@@ -295,20 +293,20 @@ onMounted(() => {
   padding: 20px;
   max-width: 1000px;
   margin: 0 auto;
-  
+
   .forum-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
-    
+
     h1 {
       font-size: 24px;
       font-weight: bold;
       color: #303133;
     }
   }
-  
+
   .forum-filters {
     display: flex;
     justify-content: space-between;
@@ -316,16 +314,16 @@ onMounted(() => {
     margin-bottom: 20px;
     flex-wrap: wrap;
     gap: 15px;
-    
+
     .el-tabs {
       flex: 1;
     }
-    
+
     .search-box {
       width: 250px;
     }
   }
-  
+
   .section-title {
     font-size: 18px;
     font-weight: bold;
@@ -333,25 +331,25 @@ onMounted(() => {
     padding-bottom: 10px;
     border-bottom: 2px solid #3498db;
   }
-  
+
   .pinned-posts {
     margin-bottom: 30px;
   }
-  
+
   .loading-container {
     padding: 20px 0;
   }
-  
+
   .pagination-container {
     margin-top: 30px;
     display: flex;
     justify-content: center;
   }
-  
+
   .empty-state {
     padding: 40px 0;
     text-align: center;
-    
+
     .el-button {
       margin-top: 20px;
     }

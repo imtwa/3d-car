@@ -31,17 +31,20 @@
 
       <div class="model-list" v-loading="loading">
         <el-row :gutter="30">
-          <el-col 
-            v-for="model in paginatedModels" 
-            :key="model.id" 
-            :xs="24" 
-            :sm="12" 
-            :md="8" 
+          <el-col
+            v-for="model in paginatedModels"
+            :key="model.id"
+            :xs="24"
+            :sm="12"
+            :md="8"
             :lg="6"
             class="model-col"
           >
             <div class="model-card" @click="viewCarModel(model)">
-              <div class="model-image" :style="{ backgroundImage: `url(${model.coverImage || '/car/default-car.jpg'})` }">
+              <div
+                class="model-image"
+                :style="{ backgroundImage: `url(${model.coverImage || '/car/default-car.jpg'})` }"
+              >
                 <div class="model-overlay">
                   <el-button type="primary" size="small" class="view-btn">3D展示</el-button>
                 </div>
@@ -123,10 +126,8 @@ const fetchCarModels = async () => {
     if (res.data) {
       if (res.data.records && res.data.records.length > 0) {
         // 提取所有coverImageId
-        const coverImageIds = res.data.records
-          .map(item => item.coverImageId)
-          .filter(id => id) // 过滤掉空值
-        
+        const coverImageIds = res.data.records.map(item => item.coverImageId).filter(id => id) // 过滤掉空值
+
         // 如果有coverImageId，获取对应的图片URL
         if (coverImageIds.length > 0) {
           try {
@@ -138,16 +139,16 @@ const fetchCarModels = async () => {
                 coverImageMap[img.id] = '/api' + img.path
               })
             }
-            
+
             // 将图片URL添加到车型数据中
             const modelsWithImages = res.data.records.map(item => ({
               ...item,
               coverImage: item.coverImageId ? coverImageMap[item.coverImageId] : null
             }))
-            
+
             // 保存所有获取的数据
             allCarModels.value = modelsWithImages
-            
+
             // 应用客户端搜索过滤
             applySearchFilter()
           } catch (imgError) {
@@ -180,18 +181,18 @@ const applySearchFilter = () => {
     carModels.value = allCarModels.value
   } else {
     const keyword = searchKeyword.value.trim().toLowerCase()
-    carModels.value = allCarModels.value.filter(model => 
-      model.name && model.name.toLowerCase().includes(keyword)
+    carModels.value = allCarModels.value.filter(
+      model => model.name && model.name.toLowerCase().includes(keyword)
     )
   }
-  
+
   // 更新总数和重置页码
   total.value = carModels.value.length
   pageNum.value = 1
 }
 
 // 查看车型3D展示
-const viewCarModel = (model) => {
+const viewCarModel = model => {
   if (!model) return
   // 在新标签页中打开carAR页面
   window.open(`/carAR/${model.id}`, '_blank')
@@ -204,13 +205,13 @@ const truncateText = (text, length) => {
 }
 
 // 处理页码变化 - 客户端分页
-const handleCurrentChange = (val) => {
+const handleCurrentChange = val => {
   pageNum.value = val
   // 客户端分页，不需要重新获取数据
 }
 
 // 处理每页数量变化 - 客户端分页
-const handleSizeChange = (val) => {
+const handleSizeChange = val => {
   pageSize.value = val
   pageNum.value = 1 // 重置为第一页
   // 客户端分页，不需要重新获取数据
@@ -221,7 +222,7 @@ const handleSearch = () => {
   if (searchTimeout.value) {
     clearTimeout(searchTimeout.value)
   }
-  
+
   searchTimeout.value = setTimeout(() => {
     pageNum.value = 1 // 重置为第一页
     applySearchFilter()
@@ -250,7 +251,9 @@ onMounted(() => {
   // 英雄区域样式
   .hero-section {
     height: 300px;
-    background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+    background-image:
+      linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+      url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
     background-size: cover;
     background-position: center;
     display: flex;
@@ -325,13 +328,14 @@ onMounted(() => {
           box-shadow: 0 0 0 1px #444;
           border-radius: 8px;
 
-          &:hover, &:focus {
+          &:hover,
+          &:focus {
             box-shadow: 0 0 0 1px #3498db;
           }
 
           .el-input__inner {
             color: #fff;
-            
+
             &::placeholder {
               color: #999;
             }

@@ -21,15 +21,17 @@ export const useUserStore = defineStore('user', () => {
   }
 
   // 登录方法
-  const login = async (loginData) => {
+  const login = async loginData => {
     try {
       const res = await userApi.login(loginData)
       if (res.code === 200) {
         // 确保token包含Bearer前缀，这是Spring Security的标准格式
-        const tokenWithPrefix = res.data.token.startsWith('Bearer ') ? res.data.token : `Bearer ${res.data.token}`
+        const tokenWithPrefix = res.data.token.startsWith('Bearer ')
+          ? res.data.token
+          : `Bearer ${res.data.token}`
         token.value = tokenWithPrefix
         userInfo.value = res.data.user
-        
+
         isLoggedIn.value = true
         localStorage.setItem('token', tokenWithPrefix)
         localStorage.setItem('userInfo', JSON.stringify(res.data.user))
@@ -71,7 +73,7 @@ export const useUserStore = defineStore('user', () => {
   }
 
   // 注册方法
-  const register = async (registerData) => {
+  const register = async registerData => {
     try {
       const res = await userApi.register(registerData)
       if (res.code === 200) {
@@ -94,7 +96,7 @@ export const useUserStore = defineStore('user', () => {
   }
 
   // 检查用户名是否存在
-  const checkUsername = async (username) => {
+  const checkUsername = async username => {
     try {
       const res = await userApi.checkUsername(username)
       return res.code === 200 ? res.data : false
@@ -105,7 +107,7 @@ export const useUserStore = defineStore('user', () => {
   }
 
   // 验证滑块验证码
-  const verifySlideCode = async (slideVerifyFlag) => {
+  const verifySlideCode = async slideVerifyFlag => {
     try {
       const res = await userApi.verifySlideCode(slideVerifyFlag)
       return res.code === 200 ? res.data : false

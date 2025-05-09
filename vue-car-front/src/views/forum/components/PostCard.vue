@@ -4,7 +4,9 @@
     <div class="post-header">
       <div class="post-author">
         <el-tag v-if="post.isTop" type="danger" size="small" class="pinned-tag">置顶</el-tag>
-        <el-avatar :src="post?.author?.avatar" :size="40">{{ post.author.username.charAt(0) }}</el-avatar>
+        <el-avatar :src="post?.author?.avatar" :size="40">{{
+          post.author.username.charAt(0)
+        }}</el-avatar>
         <div class="author-info">
           <div class="author-name">{{ post?.author?.username }}</div>
           <div class="post-time">{{ formatDate(post.createTime) }}</div>
@@ -16,9 +18,15 @@
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item @click="handleEdit" v-if="isAuthor">编辑</el-dropdown-item>
-              <el-dropdown-item @click="handleDelete" v-if="isAuthor || isAdmin">删除</el-dropdown-item>
-              <el-dropdown-item @click="handlePin" v-if="isAdmin && !post.isTop">置顶</el-dropdown-item>
-              <el-dropdown-item @click="handleUnpin" v-if="isAdmin && post.isTop">取消置顶</el-dropdown-item>
+              <el-dropdown-item @click="handleDelete" v-if="isAuthor || isAdmin"
+                >删除</el-dropdown-item
+              >
+              <el-dropdown-item @click="handlePin" v-if="isAdmin && !post.isTop"
+                >置顶</el-dropdown-item
+              >
+              <el-dropdown-item @click="handleUnpin" v-if="isAdmin && post.isTop"
+                >取消置顶</el-dropdown-item
+              >
             </el-dropdown-menu>
           </template>
         </el-dropdown>
@@ -29,13 +37,13 @@
     <div class="post-content" @click="goToDetail">
       <h3 class="post-title">{{ post.title }}</h3>
       <div class="post-text" v-html="post.content"></div>
-      
+
       <!-- 帖子图片 -->
       <div class="post-images" v-if="post.images && post.images.length > 0">
-        <el-image 
-          v-for="(image, index) in post.images" 
-          :key="index" 
-          :src="image.url" 
+        <el-image
+          v-for="(image, index) in post.images"
+          :key="index"
+          :src="image.url"
           fit="cover"
           :preview-src-list="post.images.map(img => img.url)"
           :initial-index="index"
@@ -46,11 +54,7 @@
 
     <!-- 帖子底部：点赞、评论、收藏 -->
     <div class="post-footer">
-      <div 
-        class="action-item" 
-        :class="{ 'active': post.isLiked }" 
-        @click="handleLike"
-      >
+      <div class="action-item" :class="{ active: post.isLiked }" @click="handleLike">
         <!-- <el-icon><ThumbUp  /></el-icon> -->
         <span>{{ post.likeCount || 0 }}</span>
       </div>
@@ -58,11 +62,7 @@
         <el-icon><ChatLineRound /></el-icon>
         <span>{{ post.commentCount || 0 }}</span>
       </div>
-      <div 
-        class="action-item" 
-        :class="{ 'active': post.isCollected }" 
-        @click="handleCollect"
-      >
+      <div class="action-item" :class="{ active: post.isCollected }" @click="handleCollect">
         <el-icon><Star /></el-icon>
         <span>收藏</span>
       </div>
@@ -75,8 +75,16 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { ChatLineRound, Star , MoreFilled } from '@element-plus/icons-vue'
-import { likeForumPost, unlikeForumPost, pinForumPost, unpinForumPost, deleteForumPost, collectForumPost, uncollectForumPost } from '@/api/forum'
+import { ChatLineRound, Star, MoreFilled } from '@element-plus/icons-vue'
+import {
+  likeForumPost,
+  unlikeForumPost,
+  pinForumPost,
+  unpinForumPost,
+  deleteForumPost,
+  collectForumPost,
+  uncollectForumPost
+} from '@/api/forum'
 
 const props = defineProps({
   post: {
@@ -106,12 +114,12 @@ const canManagePost = computed(() => {
 })
 
 // 格式化日期
-const formatDate = (dateString) => {
+const formatDate = dateString => {
   if (!dateString) return ''
   const date = new Date(dateString)
-  return date.toLocaleString('zh-CN', { 
-    year: 'numeric', 
-    month: '2-digit', 
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
     day: '2-digit',
     hour: '2-digit',
     minute: '2-digit'
@@ -129,21 +137,21 @@ const handleLike = async () => {
     ElMessage.warning('请先登录')
     return
   }
-  
+
   try {
     if (props.post.isLiked) {
       await unlikeForumPost(props.post.id, userStore.userId)
-      emit('update:post', { 
-        ...props.post, 
+      emit('update:post', {
+        ...props.post,
         isLiked: false,
-        likeCount: props.post.likeCount - 1 
+        likeCount: props.post.likeCount - 1
       })
     } else {
       await likeForumPost(props.post.id, userStore.userId)
-      emit('update:post', { 
-        ...props.post, 
+      emit('update:post', {
+        ...props.post,
         isLiked: true,
-        likeCount: props.post.likeCount + 1 
+        likeCount: props.post.likeCount + 1
       })
     }
   } catch (error) {
@@ -157,19 +165,19 @@ const handleCollect = async () => {
     ElMessage.warning('请先登录')
     return
   }
-  
+
   try {
     if (props.post.isCollected) {
       await uncollectForumPost(props.post.id, userStore.userId)
-      emit('update:post', { 
-        ...props.post, 
+      emit('update:post', {
+        ...props.post,
         isCollected: false
       })
       ElMessage.success('已取消收藏')
     } else {
       await collectForumPost(props.post.id, userStore.userId)
-      emit('update:post', { 
-        ...props.post, 
+      emit('update:post', {
+        ...props.post,
         isCollected: true
       })
       ElMessage.success('收藏成功')
@@ -187,23 +195,21 @@ const handleEdit = () => {
 
 // 处理删除
 const handleDelete = () => {
-  ElMessageBox.confirm(
-    '确定要删除这篇帖子吗？',
-    '删除确认',
-    {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning',
-    }
-  ).then(async () => {
-    try {
-      await deleteForumPost(props.post.id, userStore.userId)
-      ElMessage.success('删除成功')
-      emit('deleted', props.post.id)
-    } catch (error) {
-      console.error('删除失败', error)
-    }
-  }).catch(() => {})
+  ElMessageBox.confirm('确定要删除这篇帖子吗？', '删除确认', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  })
+    .then(async () => {
+      try {
+        await deleteForumPost(props.post.id, userStore.userId)
+        ElMessage.success('删除成功')
+        emit('deleted', props.post.id)
+      } catch (error) {
+        console.error('删除失败', error)
+      }
+    })
+    .catch(() => {})
 }
 
 // 置顶帖子
@@ -287,7 +293,7 @@ const handleUnpin = async () => {
       padding: 5px;
 
       &:hover {
-        color: #409EFF;
+        color: #409eff;
       }
     }
   }
@@ -341,8 +347,9 @@ const handleUnpin = async () => {
       padding: 5px 0;
       transition: color 0.3s;
 
-      &:hover, &.active {
-        color: #409EFF;
+      &:hover,
+      &.active {
+        color: #409eff;
       }
     }
   }

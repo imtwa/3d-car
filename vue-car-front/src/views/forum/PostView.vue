@@ -6,30 +6,30 @@
         <el-icon><Close /></el-icon> 取消
       </el-button>
     </div>
-    
-    <el-form 
-      :model="form" 
-      :rules="rules" 
-      ref="formRef" 
-      label-width="80px" 
+
+    <el-form
+      :model="form"
+      :rules="rules"
+      ref="formRef"
+      label-width="80px"
       @submit.prevent="submitPost"
     >
       <el-form-item label="标题" prop="title">
-        <el-input 
-          v-model="form.title" 
-          placeholder="请输入标题（5-50个字符）" 
-          maxlength="50" 
-          show-word-limit 
+        <el-input
+          v-model="form.title"
+          placeholder="请输入标题（5-50个字符）"
+          maxlength="50"
+          show-word-limit
         />
       </el-form-item>
-      
-      <rich-text-editor 
-        v-model="form.content" 
-        label="内容" 
-        prop="content" 
+
+      <rich-text-editor
+        v-model="form.content"
+        label="内容"
+        prop="content"
         placeholder="请输入帖子内容..."
       />
-      
+
       <el-form-item>
         <el-button type="primary" @click="submitPost" :loading="submitting">
           {{ isEdit ? '保存修改' : '发布帖子' }}
@@ -37,7 +37,7 @@
         <el-button @click="router.push('/forum')">取消</el-button>
       </el-form-item>
     </el-form>
-    
+
     <!-- 登录对话框 -->
     <login-dialog v-if="loginDialogVisible" @close="loginDialogVisible = false" />
   </div>
@@ -84,8 +84,6 @@ const rules = {
   ]
 }
 
-
-
 // 提交帖子
 const submitPost = async () => {
   // 检查用户是否登录
@@ -93,20 +91,20 @@ const submitPost = async () => {
     loginDialogVisible.value = true
     return
   }
-  
+
   // 表单验证
-  await formRef.value.validate(async (valid) => {
+  await formRef.value.validate(async valid => {
     if (!valid) return
-    
+
     submitting.value = true
-    
+
     try {
       const postData = {
         title: form.title,
         content: form.content,
         userId: userStore.userId // 添加用户ID字段
       }
-      
+
       if (isEdit.value) {
         // 更新帖子
         await updateForumPost(route.params.id, postData)
@@ -119,7 +117,7 @@ const submitPost = async () => {
         router.push(`/forum`)
         return
       }
-      
+
       // 返回论坛页面
       router.push('/forum')
     } catch (error) {
@@ -134,22 +132,22 @@ const submitPost = async () => {
 // 获取帖子详情（编辑模式）
 const fetchPostDetail = async () => {
   if (!isEdit.value) return
-  
+
   try {
     const response = await getForumPostDetail(route.params.id)
     const postData = response.data
-    
+
     // 检查是否有权限编辑
     if (postData.user.id !== userStore.userId && userStore.userInfo?.role !== 'admin') {
       ElMessage.error('您没有权限编辑此帖子')
       router.push('/forum')
       return
     }
-    
+
     // 填充表单数据
     form.title = postData.title
     form.content = postData.content
-    
+
     // 记录已上传的图片
     if (postData.images && postData.images.length > 0) {
       uploadedImages.value = [...postData.images]
@@ -167,7 +165,7 @@ onMounted(() => {
     loginDialogVisible.value = true
     return
   }
-  
+
   if (isEdit.value) {
     fetchPostDetail()
   }
@@ -179,13 +177,13 @@ onMounted(() => {
   max-width: 800px;
   margin: 20px auto;
   padding: 20px;
-  
+
   .post-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
-    
+
     h1 {
       font-size: 24px;
       font-weight: bold;

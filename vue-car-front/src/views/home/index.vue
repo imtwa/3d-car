@@ -38,7 +38,13 @@
       <!-- 热门车型区域 -->
       <div class="hot-models">
         <h2 class="section-title">热门车型</h2>
-        <el-carousel :interval="4000" type="card" height="320px" indicator-position="outside" arrow="always">
+        <el-carousel
+          :interval="4000"
+          type="card"
+          height="320px"
+          indicator-position="outside"
+          arrow="always"
+        >
           <el-carousel-item v-for="(item, index) in hotModels" :key="index">
             <div class="model-card carousel-card">
               <div class="model-image">{{ item.image }}</div>
@@ -99,7 +105,8 @@ const hotModels = ref([
     // 英雄区域样式
     .hero {
       background-image:
-        linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+        linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+        url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
       background-size: cover;
       background-position: center;
       color: white;
@@ -194,7 +201,7 @@ const hotModels = ref([
       // 轮播图样式
       .el-carousel {
         margin-top: 30px;
-        
+
         .el-carousel__indicators {
           margin-top: 15px;
         }

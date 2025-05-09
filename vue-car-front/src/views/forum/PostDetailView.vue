@@ -5,18 +5,20 @@
         <el-icon><ArrowLeft /></el-icon> 返回论坛
       </el-button>
     </div>
-    
+
     <!-- 加载状态 -->
     <div v-if="loading" class="loading-container">
       <el-skeleton :rows="10" animated />
     </div>
-    
+
     <!-- 帖子详情 -->
     <template v-else-if="post">
       <div class="post-header">
         <div class="post-author">
           <el-tag v-if="post.isPinned" type="danger" size="small" class="pinned-tag">置顶</el-tag>
-          <el-avatar :src="post.author.avatar" :size="40">{{ post.author.username.charAt(0) }}</el-avatar>
+          <el-avatar :src="post.author.avatar" :size="40">{{
+            post.author.username.charAt(0)
+          }}</el-avatar>
           <div class="author-info">
             <div class="author-name">{{ post.author.username }}</div>
             <div class="post-time">{{ formatDate(post.createTime) }}</div>
@@ -28,39 +30,41 @@
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item @click="handleEdit" v-if="isAuthor">编辑</el-dropdown-item>
-                <el-dropdown-item @click="handleDelete" v-if="isAuthor || isAdmin">删除</el-dropdown-item>
-                <el-dropdown-item @click="handlePin" v-if="isAdmin && !post.isPinned">置顶</el-dropdown-item>
-                <el-dropdown-item @click="handleUnpin" v-if="isAdmin && post.isPinned">取消置顶</el-dropdown-item>
+                <el-dropdown-item @click="handleDelete" v-if="isAuthor || isAdmin"
+                  >删除</el-dropdown-item
+                >
+                <el-dropdown-item @click="handlePin" v-if="isAdmin && !post.isPinned"
+                  >置顶</el-dropdown-item
+                >
+                <el-dropdown-item @click="handleUnpin" v-if="isAdmin && post.isPinned"
+                  >取消置顶</el-dropdown-item
+                >
               </el-dropdown-menu>
             </template>
           </el-dropdown>
         </div>
       </div>
-      
+
       <h1 class="post-title">{{ post.title }}</h1>
-      
+
       <div class="post-content" v-html="post.content"></div>
-      
+
       <!-- 帖子图片 -->
       <div class="post-images" v-if="post.images && post.images.length > 0">
-        <el-image 
-          v-for="(image, index) in post.images" 
-          :key="index" 
-          :src="image.url" 
+        <el-image
+          v-for="(image, index) in post.images"
+          :key="index"
+          :src="image.url"
           fit="cover"
           :preview-src-list="post.images.map(img => img.url)"
           :initial-index="index"
           class="post-image"
         />
       </div>
-      
+
       <!-- 帖子操作：收藏、分享 -->
       <div class="post-actions-bar">
-        <div 
-          class="action-item" 
-          :class="{ 'active': post.isCollected }" 
-          @click="handleCollect"
-        >
+        <div class="action-item" :class="{ active: post.isCollected }" @click="handleCollect">
           <el-icon><Star /></el-icon>
           <span>收藏</span>
         </div>
@@ -68,7 +72,7 @@
           <el-icon><Share /></el-icon>
           <span>分享</span>
         </div>
-        
+
         <!-- 添加编辑和删除按钮，仅在用户是作者时显示 -->
         <div v-if="isAuthor" class="post-management-actions">
           <div class="action-item" @click="handleEdit">
@@ -81,24 +85,24 @@
           </div>
         </div>
       </div>
-      
+
       <!-- 评论区 -->
-      <comment-section 
-        :post-id="postId" 
-        :comments="comments" 
-        @comment-added="handleCommentAdded" 
+      <comment-section
+        :post-id="postId"
+        :comments="comments"
+        @comment-added="handleCommentAdded"
         @comment-deleted="handleCommentDeleted"
         @show-login="showLoginDialog"
         @refresh-comments="fetchComments"
       />
     </template>
-    
+
     <!-- 帖子不存在 -->
     <div v-else class="not-found">
       <el-empty description="帖子不存在或已被删除" />
       <el-button type="primary" @click="router.push('/forum')">返回论坛</el-button>
     </div>
-    
+
     <!-- 登录对话框 -->
     <login-dialog v-if="loginDialogVisible" @close="loginDialogVisible = false" />
   </div>
@@ -110,7 +114,15 @@ import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ArrowLeft, Star, Share, MoreFilled, EditPen, Delete } from '@element-plus/icons-vue'
-import { getForumPostDetail, pinForumPost, unpinForumPost, deleteForumPost, getPostComments, collectForumPost, uncollectForumPost } from '@/api/forum'
+import {
+  getForumPostDetail,
+  pinForumPost,
+  unpinForumPost,
+  deleteForumPost,
+  getPostComments,
+  collectForumPost,
+  uncollectForumPost
+} from '@/api/forum'
 import CommentSection from './components/CommentSection.vue'
 import LoginDialog from '@/components/LoginDialog.vue'
 
@@ -141,12 +153,12 @@ const canManagePost = computed(() => {
 })
 
 // 格式化日期
-const formatDate = (dateString) => {
+const formatDate = dateString => {
   if (!dateString) return ''
   const date = new Date(dateString)
-  return date.toLocaleString('zh-CN', { 
-    year: 'numeric', 
-    month: '2-digit', 
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
     day: '2-digit',
     hour: '2-digit',
     minute: '2-digit'
@@ -176,7 +188,7 @@ const fetchPostDetail = async () => {
 }
 
 // 处理评论数据，确保每个评论都有author字段
-const processComments = (commentsList) => {
+const processComments = commentsList => {
   comments.value = commentsList.map(comment => {
     // 如果评论没有author字段，从user字段构建一个
     if (!comment.author && comment.user) {
@@ -211,19 +223,19 @@ const handleCollect = async () => {
     showLoginDialog()
     return
   }
-  
+
   try {
     if (post.value.isCollected) {
       await uncollectForumPost(post.value.id, userStore.userId)
-      post.value = { 
-        ...post.value, 
+      post.value = {
+        ...post.value,
         isCollected: false
       }
       ElMessage.success('已取消收藏')
     } else {
       await collectForumPost(post.value.id, userStore.userId)
-      post.value = { 
-        ...post.value, 
+      post.value = {
+        ...post.value,
         isCollected: true
       }
       ElMessage.success('收藏成功')
@@ -238,11 +250,14 @@ const handleCollect = async () => {
 const sharePost = () => {
   // 复制当前页面链接到剪贴板
   const url = window.location.href
-  navigator.clipboard.writeText(url).then(() => {
-    ElMessage.success('链接已复制到剪贴板')
-  }).catch(() => {
-    ElMessage.error('复制链接失败')
-  })
+  navigator.clipboard
+    .writeText(url)
+    .then(() => {
+      ElMessage.success('链接已复制到剪贴板')
+    })
+    .catch(() => {
+      ElMessage.error('复制链接失败')
+    })
 }
 
 // 处理编辑
@@ -252,23 +267,21 @@ const handleEdit = () => {
 
 // 处理删除
 const handleDelete = () => {
-  ElMessageBox.confirm(
-    '确定要删除这篇帖子吗？',
-    '删除确认',
-    {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning',
-    }
-  ).then(async () => {
-    try {
-      await deleteForumPost(post.value.id, userStore.userId)
-      ElMessage.success('删除成功')
-      router.push('/forum')
-    } catch (error) {
-      console.error('删除失败', error)
-    }
-  }).catch(() => {})
+  ElMessageBox.confirm('确定要删除这篇帖子吗？', '删除确认', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  })
+    .then(async () => {
+      try {
+        await deleteForumPost(post.value.id, userStore.userId)
+        ElMessage.success('删除成功')
+        router.push('/forum')
+      } catch (error) {
+        console.error('删除失败', error)
+      }
+    })
+    .catch(() => {})
 }
 
 // 处理置顶
@@ -294,7 +307,7 @@ const handleUnpin = async () => {
 }
 
 // 处理评论添加
-const handleCommentAdded = (newComment) => {
+const handleCommentAdded = newComment => {
   comments.value.unshift(newComment)
   if (post.value) {
     post.value.commentCount = (post.value.commentCount || 0) + 1
@@ -302,7 +315,7 @@ const handleCommentAdded = (newComment) => {
 }
 
 // 处理评论删除
-const handleCommentDeleted = (commentId) => {
+const handleCommentDeleted = commentId => {
   comments.value = comments.value.filter(comment => comment.id !== commentId)
   if (post.value && post.value.commentCount > 0) {
     post.value.commentCount--
@@ -325,86 +338,86 @@ onMounted(() => {
   max-width: 800px;
   margin: 0 auto;
   padding: 20px;
-  
+
   .back-link {
     margin-bottom: 20px;
   }
-  
+
   .loading-container {
     padding: 20px 0;
   }
-  
+
   .post-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 20px;
-    
+
     .post-author {
       display: flex;
       align-items: center;
       gap: 10px;
-      
+
       .pinned-tag {
         margin-right: 5px;
       }
-      
+
       .author-info {
         .author-name {
           font-weight: bold;
           font-size: 16px;
         }
-        
+
         .post-time {
           color: #909399;
           font-size: 12px;
         }
       }
     }
-    
+
     .more-icon {
       font-size: 20px;
       color: #909399;
       cursor: pointer;
       padding: 5px;
-      
+
       &:hover {
-        color: #409EFF;
+        color: #409eff;
       }
     }
   }
-  
+
   .post-title {
     font-size: 24px;
     font-weight: bold;
     margin-bottom: 20px;
     color: #303133;
   }
-  
+
   .post-content {
     line-height: 1.8;
     color: #606266;
     margin-bottom: 30px;
     overflow-wrap: break-word;
-    
+
     ::v-deep(img) {
       max-width: 100%;
       height: auto;
       margin: 10px 0;
       border-radius: 4px;
     }
-    
+
     ::v-deep(p) {
       margin-bottom: 15px;
     }
   }
-  
+
   .post-images {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
     margin-bottom: 30px;
-    
+
     .post-image {
       width: 150px;
       height: 150px;
@@ -412,7 +425,7 @@ onMounted(() => {
       object-fit: cover;
     }
   }
-  
+
   .post-actions-bar {
     display: flex;
     gap: 30px;
@@ -420,7 +433,7 @@ onMounted(() => {
     border-top: 1px solid #ebeef5;
     border-bottom: 1px solid #ebeef5;
     margin-bottom: 30px;
-    
+
     .action-item {
       display: flex;
       align-items: center;
@@ -430,29 +443,30 @@ onMounted(() => {
       padding: 5px 10px;
       border-radius: 4px;
       transition: all 0.3s;
-      
-      &:hover, &.active {
-        color: #409EFF;
+
+      &:hover,
+      &.active {
+        color: #409eff;
         background-color: #ecf5ff;
       }
-      
+
       &.delete:hover {
-        color: #F56C6C;
+        color: #f56c6c;
         background-color: #fef0f0;
       }
     }
-    
+
     .post-management-actions {
       display: flex;
       gap: 15px;
       margin-left: auto;
     }
   }
-  
+
   .not-found {
     text-align: center;
     padding: 50px 0;
-    
+
     .el-button {
       margin-top: 20px;
     }
