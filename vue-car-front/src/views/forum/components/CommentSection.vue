@@ -47,9 +47,9 @@
             {{ comment.content }}
           </div>
           <div class="comment-actions">
-            <span class="action-item" @click="handleReply(comment)">
+            <!-- <span class="action-item" @click="handleReply(comment)">
               <el-icon><ChatLineRound /></el-icon> 回复
-            </span>
+            </span> -->
             <span
               class="action-item delete"
               v-if="canDeleteComment(comment)"

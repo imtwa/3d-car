@@ -58,12 +58,11 @@
                 >
                   <div class="post-header">
                     <div class="post-author">
-                      <el-avatar
-                        :size="40"
-                        :src="collection.post.author?.avatar || defaultAvatar"
-                      />
+                      <el-avatar :size="40">
+                        {{ collection.post.user?.username.charAt(0) }}
+                      </el-avatar>
                       <div>
-                        <div>{{ collection.post.author?.username }}</div>
+                        <div>{{ collection.post.user?.username }}</div>
                         <div class="post-meta">{{ formatDate(collection.post.createTime) }}</div>
                       </div>
                     </div>
@@ -111,7 +110,9 @@
                 >
                   <div class="post-header">
                     <div class="post-author">
-                      <el-avatar :size="40" :src="userStore.userInfo.avatar || defaultAvatar" />
+                      <el-avatar :size="40">
+                        {{ userStore.userInfo.username.charAt(0) }}
+                      </el-avatar>
                       <div>
                         <div>{{ userStore.userInfo.username }}</div>
                         <div class="post-meta">{{ formatDate(post.createTime) }}</div>
@@ -163,7 +164,9 @@
                 >
                   <div class="post-header">
                     <div class="post-author">
-                      <el-avatar :size="40" :src="userStore.userInfo.avatar || defaultAvatar" />
+                      <el-avatar :size="40">
+                        {{ userStore.userInfo.username.charAt(0) }}
+                      </el-avatar>
                       <div>
                         <div>{{ userStore.userInfo.username }}</div>
                         <div class="post-meta">{{ formatDate(comment.createTime) }}</div>

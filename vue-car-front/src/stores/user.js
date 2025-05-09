@@ -26,7 +26,7 @@ export const useUserStore = defineStore('user', () => {
     try {
       const res = await userApi.login(loginData)
       if (res.code === 200) {
-        if(!res.data){
+        if (!res.data) {
           ElMessage.error('账号异常或被封禁，请联系管理员')
           return false
         }
