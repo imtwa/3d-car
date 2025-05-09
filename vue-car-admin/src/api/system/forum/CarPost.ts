@@ -37,9 +37,9 @@ export const updateStatus = (id: string, status: string) => {
 };
 
 // 修改帖子置顶状态
-export const updateTop = (id: string, isTop: string) => {
+export const updateTop = (id: string) => {
     return request<string>({
-        url: 'car/post/updateTop/' + id + '/' + isTop,
+        url: 'car/post/toggle-top/' + id,
         method: 'post'
     });
 };

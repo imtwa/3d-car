@@ -111,10 +111,10 @@
                       @click="(checked: boolean | string | number, event: MouseEvent) => { event.stopPropagation(); record.updateTopLoading = true }"
                       :loading="record.updateTopLoading">
               <template #checkedChildren>
-                {{top_status.filter(item => item.value === text)[0]?.label}}
+                {{top_status.filter(item => item.value === (typeof text === 'number' ? text.toString() : text))[0]?.label}}
               </template>
               <template #unCheckedChildren>
-                {{top_status.filter(item => item.value === text)[0]?.label}}
+                {{top_status.filter(item => item.value === (typeof text === 'number' ? text.toString() : text))[0]?.label}}
               </template>
             </a-switch>
           </template>
@@ -210,7 +210,9 @@
           </tr>
           <tr>
             <td style="padding: 8px; border: 1px solid #f0f0f0; background: #fafafa; font-weight: bold;">是否置顶</td>
-            <td style="padding: 8px; border: 1px solid #f0f0f0;">{{ postDetail.isTop === '1' ? '是' : '否' }}</td>
+            <td style="padding: 8px; border: 1px solid #f0f0f0;">
+              {{ postDetail.isTop === '1' || Number(postDetail.isTop) === 1 ? '是' : '否' }}
+            </td>
           </tr>
           <tr>
             <td style="padding: 8px; border: 1px solid #f0f0f0; background: #fafafa; font-weight: bold;">状态</td>
@@ -323,13 +325,21 @@ const handleQueryPage = async () => {
     
     const res = await carPostApi.queryPage(postQuery);
     if (res && res.data && res.data.records) {
-      postList.value = res.data.records.map(item => ({
-        ...item,
-        statusIsNormal: item.status === '0',
-        updateStatusLoading: false,
-        isTopFlag: item.isTop === '1',
-        updateTopLoading: false
-      }));
+      postList.value = res.data.records.map(item => {
+        // 确保isTop和status是字符串类型
+        const isTop = item.isTop?.toString() || '0';
+        const status = item.status?.toString() || '0';
+        
+        return {
+          ...item,
+          isTop: isTop,
+          status: status,
+          statusIsNormal: status === '0',
+          updateStatusLoading: false,
+          isTopFlag: isTop === '1' || Number(item.isTop) === 1,
+          updateTopLoading: false
+        };
+      });
       postTotal.value = res.data.total || 0;
     }
   } catch (error) {
@@ -421,8 +431,8 @@ const handleUpdateStatus = async (event: MouseEvent, id: string, currentStatus: 
 const handleUpdateTop = async (event: MouseEvent, id: string, currentIsTop: string) => {
   event.stopPropagation();
   try {
-    const newIsTop = currentIsTop === '0' ? '1' : '0';
-    await carPostApi.updateTop(id, newIsTop);
+    // 调用后端toggle-top接口，不需要传递当前状态
+    await carPostApi.updateTop(id);
     message.success('置顶状态修改成功');
     
     // 刷新列表
