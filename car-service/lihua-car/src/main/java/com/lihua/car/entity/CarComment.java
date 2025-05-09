@@ -2,6 +2,7 @@ package com.lihua.car.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
@@ -13,7 +14,7 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 汽车评论表
+ * 帖子评论表
  * </p>
  *
  * @author lihua
@@ -22,6 +23,7 @@ import java.time.LocalDateTime;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
+@TableName("car_post_comment")
 public class CarComment implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -34,9 +36,9 @@ public class CarComment implements Serializable {
     private Long id;
 
     /**
-     * 车型ID
+     * 帖子ID
      */
-    private Long modelId;
+    private Long postId;
 
     /**
      * 用户ID
@@ -44,14 +46,20 @@ public class CarComment implements Serializable {
     private Long userId;
 
     /**
+     * 父评论ID
+     */
+    @JsonSerialize(using = ToStringSerializer.class)
+    private Long parentId;
+
+    /**
      * 评论内容
      */
     private String content;
 
     /**
-     * 评分(1-5)
+     * 点赞次数
      */
-    private Integer rating;
+    private Integer likeCount;
 
     /**
      * 状态（0正常 1停用）
@@ -80,8 +88,14 @@ public class CarComment implements Serializable {
     private String userName;
 
     /**
-     * 车型名称（非数据库字段）
+     * 帖子标题（非数据库字段）
      */
     @TableField(exist = false)
-    private String modelName;
+    private String postTitle;
+    
+    /**
+     * 父评论用户名（非数据库字段）
+     */
+    @TableField(exist = false)
+    private String parentUserName;
 } 

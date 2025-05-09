@@ -9,7 +9,7 @@ import java.util.List;
 
 /**
  * <p>
- * 汽车评论表 服务接口
+ * 帖子评论表 服务接口
  * </p>
  *
  * @author lihua
@@ -34,12 +34,12 @@ public interface CarCommentService extends IService<CarComment> {
     CarComment selectCommentById(Long id);
     
     /**
-     * 根据车型ID查询评论列表
+     * 根据帖子ID查询评论列表
      *
-     * @param modelId 车型ID
+     * @param postId 帖子ID
      * @return 评论列表
      */
-    List<CarComment> selectCommentsByModelId(Long modelId);
+    List<CarComment> selectCommentsByPostId(Long postId);
     
     /**
      * 新增评论

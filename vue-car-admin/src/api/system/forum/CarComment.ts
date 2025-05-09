@@ -13,7 +13,7 @@ export const queryPage = (data: CarPostCommentDTO) => {
 
 // 根据id查询评论详情
 export const queryById = (id: string) => {
-    return request<CarPostCommentDTO>({
+    return request<CarPostCommentVO>({
         url: "car/comment/" + id,
         method: "get"
     });
@@ -28,17 +28,43 @@ export const queryByPostId = (postId: string, data: CarPostCommentDTO) => {
     });
 };
 
+// 新增评论
+export const addComment = (data: CarPostComment) => {
+    return request<boolean>({
+        url: "car/comment/add",
+        method: "post",
+        data: data
+    });
+};
+
+// 修改评论
+export const updateComment = (data: CarPostComment) => {
+    return request<number>({
+        url: "car/comment/update",
+        method: "post",
+        data: data
+    });
+};
+
 // 修改评论状态
 export const updateStatus = (id: string, status: string) => {
-    return request<string>({
+    return request<number>({
         url: 'car/comment/updateStatus/' + id + '/' + status,
         method: 'post'
     });
 };
 
-// 根据id集合删除评论
+// 删除单个评论
+export const deleteById = (id: string) => {
+    return request<number>({
+        url: 'car/comment/' + id,
+        method: 'delete'
+    });
+};
+
+// 批量删除评论
 export const deleteByIds = (ids: string[]) => {
-    return request({
+    return request<number>({
         url: 'car/comment',
         method: 'delete',
         data: ids

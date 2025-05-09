@@ -152,37 +152,6 @@
         </template>
       </a-table>
     </a-flex>
-
-    <!-- 帖子详情弹窗 -->
-    <a-modal v-model:open="postDetailModalActive" width="800px" :footer="null">
-      <template #title>
-        <div style="margin-bottom: 24px">
-          <a-typography-title :level="4">帖子详情</a-typography-title>
-        </div>
-      </template>
-      <a-descriptions bordered :column="1">
-        <a-descriptions-item label="标题">{{ postDetail.title }}</a-descriptions-item>
-        <a-descriptions-item label="发布者">{{ postDetail.username }}</a-descriptions-item>
-        <a-descriptions-item label="内容">
-          <div v-html="postDetail.content" style="max-height: 300px; overflow-y: auto;"></div>
-        </a-descriptions-item>
-        <a-descriptions-item label="浏览次数">{{ postDetail.viewCount }}</a-descriptions-item>
-        <a-descriptions-item label="点赞次数">{{ postDetail.likeCount }}</a-descriptions-item>
-        <a-descriptions-item label="评论次数">{{ postDetail.commentCount }}</a-descriptions-item>
-        <a-descriptions-item label="是否置顶">
-          {{ postDetail.isTop === '1' ? '是' : '否' }}
-        </a-descriptions-item>
-        <a-descriptions-item label="状态">
-          {{ postDetail.status === '0' ? '正常' : '停用' }}
-        </a-descriptions-item>
-        <a-descriptions-item label="创建时间">
-          {{ postDetail.createTime ? dayjs(postDetail.createTime).format('YYYY-MM-DD HH:mm:ss') : '-' }}
-        </a-descriptions-item>
-        <a-descriptions-item label="最后更新时间">
-          {{ postDetail.updateTime ? dayjs(postDetail.updateTime).format('YYYY-MM-DD HH:mm:ss') : '-' }}
-        </a-descriptions-item>
-      </a-descriptions>
-    </a-modal>
   </div>
 </template>
 
@@ -198,9 +167,9 @@ import {
   ExportOutlined 
 } from '@ant-design/icons-vue';
 import { message } from 'ant-design-vue';
-import type { CarPost, CarPostCommentDTO, CarPostCommentVO } from '@/api/system/forum/type/CarPost';
-import * as carPostApi from '@/api/system/forum/CarPost';
+import type { CarPostCommentDTO, CarPostCommentVO } from '@/api/system/forum/type/CarPost';
 import * as carCommentApi from '@/api/system/forum/CarComment';
+import { useRoute, useRouter } from 'vue-router';
 
 // 字典数据
 const sys_status = [
@@ -213,7 +182,7 @@ const commentColumn = [
   { title: '评论内容', dataIndex: 'content', key: 'content', width: 200, ellipsis: true },
   { title: '帖子标题', dataIndex: 'postTitle', key: 'postTitle', width: 200, ellipsis: true },
   { title: '评论用户', dataIndex: 'username', key: 'username', width: 120 },
-  { title: '回复对象', dataIndex: 'parentUsername', key: 'parentUsername', width: 120 },
+  // { title: '回复对象', dataIndex: 'parentUsername', key: 'parentUsername', width: 120 },
   { title: '点赞次数', dataIndex: 'likeCount', key: 'likeCount', width: 100 },
   { title: '状态', dataIndex: 'status', key: 'status', width: 100 },
   { title: '评论时间', dataIndex: 'createTime', key: 'createTime', width: 160 },
@@ -233,12 +202,16 @@ const commentTotal = ref(0);
 const selectedIds = ref<string[]>([]);
 const openDeletePopconfirm = ref(false);
 
-// 帖子详情相关
-const postDetailModalActive = ref(false);
-const postDetail = reactive<CarPost>({});
+const route = useRoute();
+const router = useRouter();
 
 // 初始化
 onMounted(() => {
+  // 检查是否有查询参数
+  if (route.query.postId) {
+    commentQuery.postId = route.query.postId as string;
+    commentQuery.postTitle = route.query.postTitle as string;
+  }
   initPage();
 });
 
@@ -295,6 +268,7 @@ const resetPage = () => {
     createTimeList: undefined,
     createTimeStart: undefined,
     createTimeEnd: undefined,
+    postId: undefined,
     pageNum: 1,
     pageSize: 10
   });
@@ -318,13 +292,19 @@ const closePopconfirm = () => {
 // 处理删除操作
 const handleDelete = async (id?: string) => {
   try {
-    const ids = id ? [id] : selectedIds.value;
-    if (!ids || ids.length === 0) {
-      message.warning('请选择要删除的记录');
-      return;
+    if (id) {
+      // 删除单个评论
+      await carCommentApi.deleteById(id);
+    } else {
+      // 批量删除评论
+      const ids = selectedIds.value;
+      if (!ids || ids.length === 0) {
+        message.warning('请选择要删除的记录');
+        return;
+      }
+      
+      await carCommentApi.deleteByIds(ids);
     }
-    
-    await carCommentApi.deleteByIds(ids);
     message.success('删除成功');
     
     // 刷新数据
@@ -370,16 +350,13 @@ const viewPost = async (event: MouseEvent, postId?: string) => {
     return;
   }
   
-  try {
-    const res = await carPostApi.queryById(postId);
-    if (res) {
-      Object.assign(postDetail, res);
-      postDetailModalActive.value = true;
+  // 跳转到帖子管理页面
+  router.push({
+    path: '/system/forum',
+    query: {
+      postId: postId
     }
-  } catch (error) {
-    console.error('获取帖子详情失败', error);
-    message.error('获取帖子详情失败');
-  }
+  });
 };
 
 // 导出Excel

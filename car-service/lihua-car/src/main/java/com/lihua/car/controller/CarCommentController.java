@@ -9,9 +9,11 @@ import com.lihua.model.web.BaseController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * <p>
- * 评论表 前端控制器
+ * 帖子评论表 前端控制器
  * </p>
  *
  * @author lihua
@@ -25,7 +27,7 @@ public class CarCommentController extends BaseController {
     private CarCommentService carCommentService;
 
     /**
-     * 获取评论列表
+     * 分页查询评论列表
      */
     @PostMapping("/page")
     public String selectCommentList(@RequestBody CarCommentDTO dto) {
@@ -35,17 +37,21 @@ public class CarCommentController extends BaseController {
     /**
      * ID查询评论
      */
-    @GetMapping("/selectId/{id}")
+    @GetMapping("/{id}")
     public String selectCommentById(@PathVariable("id") Long id) {
         return success(carCommentService.selectCommentById(id));
     }
 
     /**
-     * 根据车型ID查询评论列表
+     * 根据帖子ID查询评论列表
      */
-    @GetMapping("/model/{modelId}")
-    public String selectCommentsByModelId(@PathVariable("modelId") Long modelId) {
-        return success(carCommentService.selectCommentsByModelId(modelId));
+    @PostMapping("/post/{postId}")
+    public String selectCommentsByPostId(@PathVariable("postId") Long postId, @RequestBody(required = false) CarCommentDTO dto) {
+        if (dto == null) {
+            dto = new CarCommentDTO();
+        }
+        dto.setPostId(postId);
+        return success(carCommentService.queryPage(dto));
     }
 
     /**
@@ -54,7 +60,7 @@ public class CarCommentController extends BaseController {
     @PostMapping("/add")
     @Log(description = "保存评论数据", type = LogTypeEnum.SAVE)
     public String saveAdd(@RequestBody CarComment comment) {
-        return success(carCommentService.save(comment));
+        return success(carCommentService.insertComment(comment));
     }
 
     /**
@@ -63,24 +69,46 @@ public class CarCommentController extends BaseController {
     @PostMapping("/update")
     @Log(description = "更新评论数据", type = LogTypeEnum.SAVE)
     public String updateComment(@RequestBody CarComment comment) {
-        return success(carCommentService.updateById(comment));
+        return success(carCommentService.updateComment(comment));
     }
 
     /**
      * 删除评论
      */
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/{id}")
     @Log(description = "删除评论数据", type = LogTypeEnum.DELETE)
     public String deleteCommentById(@PathVariable("id") Long id) {
-        return success(carCommentService.removeById(id));
+        return success(carCommentService.deleteCommentById(id));
+    }
+    
+    /**
+     * 批量删除评论
+     */
+    @DeleteMapping
+    @Log(description = "批量删除评论数据", type = LogTypeEnum.DELETE)
+    public String deleteCommentByIds(@RequestBody List<Long> ids) {
+        Long[] idArray = ids.toArray(new Long[0]);
+        return success(carCommentService.deleteCommentByIds(idArray));
     }
 
     /**
      * 变更评论状态
      */
-    @PostMapping("/changeStatus")
+    @PostMapping("/updateStatus/{id}/{status}")
     @Log(description = "更新评论状态", type = LogTypeEnum.SAVE)
-    public String changeStatus(@RequestBody CarComment comment) {
-        return success(carCommentService.updateById(comment));
+    public String updateStatus(@PathVariable("id") Long id, @PathVariable("status") String status) {
+        CarComment comment = new CarComment();
+        comment.setId(id);
+        comment.setStatus(status);
+        return success(carCommentService.changeStatus(comment));
+    }
+    
+    /**
+     * 导出评论数据
+     */
+    @PostMapping("/export")
+    @Log(description = "导出评论数据", type = LogTypeEnum.EXPORT)
+    public void exportExcel(@RequestBody CarCommentDTO dto) {
+        // 实现导出逻辑
     }
 } 

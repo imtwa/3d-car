@@ -6,9 +6,11 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lihua.car.dto.CarCommentDTO;
 import com.lihua.car.entity.CarComment;
-import com.lihua.car.entity.CarModel;
+import com.lihua.car.entity.CarPost;
+import com.lihua.car.entity.CarUser;
 import com.lihua.car.mapper.CarCommentMapper;
-import com.lihua.car.mapper.CarModelMapper;
+import com.lihua.car.mapper.CarPostMapper;
+import com.lihua.car.mapper.CarUserMapper;
 import com.lihua.car.service.CarCommentService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,10 +20,12 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * <p>
- * 汽车评论表 服务实现类
+ * 帖子评论表 服务实现类
  * </p>
  *
  * @author lihua
@@ -35,7 +39,10 @@ public class CarCommentServiceImpl extends ServiceImpl<CarCommentMapper, CarComm
     private CarCommentMapper commentMapper;
 
     @Autowired
-    private CarModelMapper modelMapper;
+    private CarPostMapper postMapper;
+    
+    @Autowired
+    private CarUserMapper userMapper;
 
     /**
      * 查询评论列表
@@ -48,19 +55,24 @@ public class CarCommentServiceImpl extends ServiceImpl<CarCommentMapper, CarComm
         IPage<CarComment> page = new Page<>(dto.getPageNum(), dto.getPageSize());
         LambdaQueryWrapper<CarComment> queryWrapper = new LambdaQueryWrapper<>();
 
-        // 添加车型ID查询条件
-        if (dto.getModelId() != null) {
-            queryWrapper.eq(CarComment::getModelId, dto.getModelId());
+        // 添加帖子ID查询条件
+        if (dto.getPostId() != null) {
+            queryWrapper.eq(CarComment::getPostId, dto.getPostId());
         }
 
         // 添加用户ID查询条件
         if (dto.getUserId() != null) {
             queryWrapper.eq(CarComment::getUserId, dto.getUserId());
         }
-
-        // 添加评分查询条件
-        if (dto.getRating() != null) {
-            queryWrapper.eq(CarComment::getRating, dto.getRating());
+        
+        // 添加评论内容查询条件
+        if (StringUtils.hasText(dto.getContent())) {
+            queryWrapper.like(CarComment::getContent, dto.getContent());
+        }
+        
+        // 添加创建时间范围查询条件
+        if (StringUtils.hasText(dto.getCreateTimeStart()) && StringUtils.hasText(dto.getCreateTimeEnd())) {
+            queryWrapper.between(CarComment::getCreateTime, dto.getCreateTimeStart(), dto.getCreateTimeEnd());
         }
 
         // 添加状态查询条件
@@ -76,14 +88,64 @@ public class CarCommentServiceImpl extends ServiceImpl<CarCommentMapper, CarComm
 
         // 查询评论列表
         IPage<CarComment> resultPage = this.page(page, queryWrapper);
-
-        // 为每个评论关联车型名称
+        
         if (resultPage.getRecords() != null && !resultPage.getRecords().isEmpty()) {
+            // 收集所有用户ID和帖子ID
+            List<Long> userIds = resultPage.getRecords().stream()
+                    .map(CarComment::getUserId)
+                    .collect(Collectors.toList());
+            
+            List<Long> postIds = resultPage.getRecords().stream()
+                    .map(CarComment::getPostId)
+                    .collect(Collectors.toList());
+            
+            List<Long> parentUserIds = resultPage.getRecords().stream()
+                    .filter(comment -> comment.getParentId() != null && comment.getParentId() > 0)
+                    .map(comment -> this.getById(comment.getParentId()).getUserId())
+                    .collect(Collectors.toList());
+            
+            userIds.addAll(parentUserIds);
+            
+            // 批量查询用户信息
+            List<CarUser> users = null;
+            if (!userIds.isEmpty()) {
+                LambdaQueryWrapper<CarUser> userWrapper = new LambdaQueryWrapper<>();
+                userWrapper.in(CarUser::getId, userIds);
+                users = userMapper.selectList(userWrapper);
+            }
+            
+            // 批量查询帖子信息
+            List<CarPost> posts = null;
+            if (!postIds.isEmpty()) {
+                LambdaQueryWrapper<CarPost> postWrapper = new LambdaQueryWrapper<>();
+                postWrapper.in(CarPost::getId, postIds);
+                posts = postMapper.selectList(postWrapper);
+            }
+            
+            // 转换为Map方便查询
+            Map<Long, CarUser> userMap = users != null ? users.stream()
+                    .collect(Collectors.toMap(CarUser::getId, user -> user)) : null;
+            
+            Map<Long, CarPost> postMap = posts != null ? posts.stream()
+                    .collect(Collectors.toMap(CarPost::getId, post -> post)) : null;
+                    
+            // 填充评论关联信息
             for (CarComment comment : resultPage.getRecords()) {
-                if (comment.getModelId() != null) {
-                    CarModel model = modelMapper.selectById(comment.getModelId());
-                    if (model != null) {
-                        comment.setModelName(model.getName());
+                // 设置用户名称
+                if (userMap != null && userMap.containsKey(comment.getUserId())) {
+                    comment.setUserName(userMap.get(comment.getUserId()).getUsername());
+                }
+                
+                // 设置帖子标题
+                if (postMap != null && postMap.containsKey(comment.getPostId())) {
+                    comment.setPostTitle(postMap.get(comment.getPostId()).getTitle());
+                }
+                
+                // 设置父评论用户名
+                if (comment.getParentId() != null && comment.getParentId() > 0) {
+                    CarComment parentComment = this.getById(comment.getParentId());
+                    if (parentComment != null && userMap != null && userMap.containsKey(parentComment.getUserId())) {
+                        comment.setParentUserName(userMap.get(parentComment.getUserId()).getUsername());
                     }
                 }
             }
@@ -100,23 +162,91 @@ public class CarCommentServiceImpl extends ServiceImpl<CarCommentMapper, CarComm
      */
     @Override
     public CarComment selectCommentById(Long id) {
-        return this.getById(id);
+        CarComment comment = this.getById(id);
+        if (comment != null) {
+            // 查询关联信息
+            CarUser user = userMapper.selectById(comment.getUserId());
+            if (user != null) {
+                comment.setUserName(user.getUsername());
+            }
+            
+            CarPost post = postMapper.selectById(comment.getPostId());
+            if (post != null) {
+                comment.setPostTitle(post.getTitle());
+            }
+            
+            if (comment.getParentId() != null && comment.getParentId() > 0) {
+                CarComment parentComment = this.getById(comment.getParentId());
+                if (parentComment != null) {
+                    CarUser parentUser = userMapper.selectById(parentComment.getUserId());
+                    if (parentUser != null) {
+                        comment.setParentUserName(parentUser.getUsername());
+                    }
+                }
+            }
+        }
+        return comment;
     }
 
     /**
-     * 根据车型ID查询评论列表
+     * 根据帖子ID查询评论列表
      *
-     * @param modelId 车型ID
+     * @param postId 帖子ID
      * @return 评论列表
      */
     @Override
-    public List<CarComment> selectCommentsByModelId(Long modelId) {
+    public List<CarComment> selectCommentsByPostId(Long postId) {
         LambdaQueryWrapper<CarComment> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(CarComment::getModelId, modelId)
-                .eq(CarComment::getDelFlag, "0")
-                .eq(CarComment::getStatus, "0")
-                .orderByDesc(CarComment::getCreateTime);
-        return this.list(queryWrapper);
+        queryWrapper.eq(CarComment::getPostId, postId);
+        queryWrapper.eq(CarComment::getDelFlag, "0");
+        queryWrapper.eq(CarComment::getStatus, "0");
+        queryWrapper.orderByDesc(CarComment::getCreateTime);
+        
+        List<CarComment> comments = this.list(queryWrapper);
+        
+        if (comments != null && !comments.isEmpty()) {
+            // 收集所有用户ID
+            List<Long> userIds = comments.stream()
+                    .map(CarComment::getUserId)
+                    .collect(Collectors.toList());
+            
+            List<Long> parentUserIds = comments.stream()
+                    .filter(comment -> comment.getParentId() != null && comment.getParentId() > 0)
+                    .map(comment -> this.getById(comment.getParentId()).getUserId())
+                    .collect(Collectors.toList());
+            
+            userIds.addAll(parentUserIds);
+            
+            // 批量查询用户信息
+            List<CarUser> users = null;
+            if (!userIds.isEmpty()) {
+                LambdaQueryWrapper<CarUser> userWrapper = new LambdaQueryWrapper<>();
+                userWrapper.in(CarUser::getId, userIds);
+                users = userMapper.selectList(userWrapper);
+            }
+            
+            // 转换为Map方便查询
+            Map<Long, CarUser> userMap = users != null ? users.stream()
+                    .collect(Collectors.toMap(CarUser::getId, user -> user)) : null;
+                    
+            // 填充评论关联信息
+            for (CarComment comment : comments) {
+                // 设置用户名称
+                if (userMap != null && userMap.containsKey(comment.getUserId())) {
+                    comment.setUserName(userMap.get(comment.getUserId()).getUsername());
+                }
+                
+                // 设置父评论用户名
+                if (comment.getParentId() != null && comment.getParentId() > 0) {
+                    CarComment parentComment = this.getById(comment.getParentId());
+                    if (parentComment != null && userMap != null && userMap.containsKey(parentComment.getUserId())) {
+                        comment.setParentUserName(userMap.get(parentComment.getUserId()).getUsername());
+                    }
+                }
+            }
+        }
+        
+        return comments;
     }
 
     /**
@@ -126,11 +256,9 @@ public class CarCommentServiceImpl extends ServiceImpl<CarCommentMapper, CarComm
      * @return 结果
      */
     @Override
+    @Transactional
     public boolean insertComment(CarComment comment) {
         comment.setCreateTime(LocalDateTime.now());
-        comment.setUpdateTime(LocalDateTime.now());
-        comment.setDelFlag("0");
-        comment.setStatus("0");
         return this.save(comment);
     }
 
@@ -141,10 +269,10 @@ public class CarCommentServiceImpl extends ServiceImpl<CarCommentMapper, CarComm
      * @return 结果
      */
     @Override
-    @Transactional(rollbackFor = Exception.class)
+    @Transactional
     public int updateComment(CarComment comment) {
         comment.setUpdateTime(LocalDateTime.now());
-        return commentMapper.updateById(comment);
+        return this.updateById(comment) ? 1 : 0;
     }
 
     /**
@@ -154,12 +282,13 @@ public class CarCommentServiceImpl extends ServiceImpl<CarCommentMapper, CarComm
      * @return 结果
      */
     @Override
+    @Transactional
     public int deleteCommentById(Long id) {
         CarComment comment = new CarComment();
         comment.setId(id);
         comment.setDelFlag("1");
         comment.setUpdateTime(LocalDateTime.now());
-        return commentMapper.updateById(comment);
+        return this.updateById(comment) ? 1 : 0;
     }
 
     /**
@@ -169,6 +298,7 @@ public class CarCommentServiceImpl extends ServiceImpl<CarCommentMapper, CarComm
      * @return 结果
      */
     @Override
+    @Transactional
     public int deleteCommentByIds(Long[] ids) {
         int count = 0;
         for (Long id : ids) {
@@ -184,8 +314,9 @@ public class CarCommentServiceImpl extends ServiceImpl<CarCommentMapper, CarComm
      * @return 结果
      */
     @Override
+    @Transactional
     public int changeStatus(CarComment comment) {
         comment.setUpdateTime(LocalDateTime.now());
-        return commentMapper.updateById(comment);
+        return this.updateById(comment) ? 1 : 0;
     }
 } 
