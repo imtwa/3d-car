@@ -46,7 +46,7 @@ export const deleteByIds = (ids: string[]) => {
 };
 
 // 重置前台用户密码
-export const resetPassword = (userId: string, password: string, passwordRequestKey: string) => {
+export const resetPassword = (userId: string | number, password: string, passwordRequestKey: string) => {
     return request<string>({
         url: 'car/user/resetPassword',
         method: 'post',
@@ -60,9 +60,10 @@ export const resetPassword = (userId: string, password: string, passwordRequestK
 
 // 导出前台用户数据
 export const exportExcel = (data: CarUserDTO) => {
-    return request<string>({
+    return request({
         url: 'car/user/export',
         method: "post",
         data: data,
+        responseType: 'blob'
     });
 }; 

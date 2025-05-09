@@ -102,4 +102,14 @@ public class CarUserDTO extends BaseDTO implements Serializable {
      * 滑块验证标识
      */
     private String slideVerifyFlag;
+    
+    /**
+     * 创建时间开始（用于日期范围查询）
+     */
+    private String createTimeStart;
+    
+    /**
+     * 创建时间结束（用于日期范围查询）
+     */
+    private String createTimeEnd;
 }

@@ -2,6 +2,7 @@ package com.lihua.car.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lihua.car.dto.CarUserDTO;
 import com.lihua.car.entity.CarUser;
@@ -12,12 +13,17 @@ import com.lihua.enums.ResultCodeEnum;
 import com.lihua.utils.security.JwtUtils;
 import com.lihua.utils.security.SecurityUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.io.ByteArrayOutputStream;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 /**
  * <p>
@@ -131,7 +137,7 @@ public class CarUserServiceImpl extends ServiceImpl<CarUserMapper, CarUser> impl
 
     @Override
     public Boolean checkUsernameExist(String username) {
-        if (StringUtils.isEmpty(username)) {
+        if (!StringUtils.hasText(username)) {
             return false; // 用户名不能为空，返回false而不是null
         }
         
@@ -146,11 +152,256 @@ public class CarUserServiceImpl extends ServiceImpl<CarUserMapper, CarUser> impl
     @Override
     public Boolean verifySlideCode(String slideVerifyFlag) {
         // 模拟滑块验证，实际项目中应该调用验证服务
-        if (StringUtils.isEmpty(slideVerifyFlag)) {
+        if (!StringUtils.hasText(slideVerifyFlag)) {
             return false; // 滑块验证标识不能为空，返回false而不是null
         }
         
         // TODO: 实现真实的滑块验证逻辑
         return true;
+    }
+    
+    @Override
+    public Page<CarUser> page(CarUserDTO carUserDTO) {
+        // 创建查询条件
+        LambdaQueryWrapper<CarUser> queryWrapper = new LambdaQueryWrapper<>();
+        
+        // 仅查询前台用户，不查询已删除用户
+        queryWrapper.eq(CarUser::getDelFlag, "0");
+        
+        // 添加查询条件
+        queryWrapper.like(StringUtils.hasText(carUserDTO.getUsername()), CarUser::getUsername, carUserDTO.getUsername())
+                .like(StringUtils.hasText(carUserDTO.getNickname()), CarUser::getNickname, carUserDTO.getNickname())
+                .eq(StringUtils.hasText(carUserDTO.getStatus()), CarUser::getStatus, carUserDTO.getStatus());
+        
+        // 时间范围查询
+        if (StringUtils.hasText(carUserDTO.getCreateTimeStart()) && StringUtils.hasText(carUserDTO.getCreateTimeEnd())) {
+            queryWrapper.between(CarUser::getCreateTime, 
+                    LocalDateTime.parse(carUserDTO.getCreateTimeStart(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                    LocalDateTime.parse(carUserDTO.getCreateTimeEnd(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        }
+        
+        // 按创建时间降序排序
+        queryWrapper.orderByDesc(CarUser::getCreateTime);
+        
+        // 分页查询
+        Page<CarUser> page = new Page<>(carUserDTO.getPageNum(), carUserDTO.getPageSize());
+        return page(page, queryWrapper);
+    }
+    
+    @Override
+    public CarUserDTO getCarUserById(Long id) {
+        if (id == null) {
+            return null;
+        }
+        
+        CarUser carUser = getById(id);
+        if (carUser == null || "1".equals(carUser.getDelFlag())) {
+            return null;
+        }
+        
+        CarUserDTO carUserDTO = new CarUserDTO();
+        BeanUtils.copyProperties(carUser, carUserDTO);
+        
+        // 不返回密码
+        carUserDTO.setPassword(null);
+        
+        return carUserDTO;
+    }
+    
+    @Override
+    @Transactional
+    public Boolean saveOrUpdate(CarUserDTO carUserDTO) {
+        if (carUserDTO == null) {
+            return false;
+        }
+        
+        CarUser carUser = new CarUser();
+        BeanUtils.copyProperties(carUserDTO, carUser);
+        
+        // 新增用户
+        if (carUser.getId() == null) {
+            // 检查用户名是否存在
+            if (checkUsernameExist(carUser.getUsername())) {
+                throw new RuntimeException("用户名已存在");
+            }
+            
+            carUser.setId(IdWorker.getId(carUser));
+            carUser.setPassword(SecurityUtils.encryptPassword(carUserDTO.getPassword()));
+            carUser.setDelFlag("0");
+            carUser.setCreateTime(LocalDateTime.now());
+            carUser.setRegisterType("0"); // 管理员新增
+            
+            return save(carUser);
+        } 
+        // 更新用户
+        else {
+            // 获取原有用户数据
+            CarUser oldUser = getById(carUser.getId());
+            if (oldUser == null || "1".equals(oldUser.getDelFlag())) {
+                return false;
+            }
+            
+            // 用户名不能修改
+            carUser.setUsername(oldUser.getUsername());
+            // 密码不变
+            carUser.setPassword(oldUser.getPassword());
+            carUser.setDelFlag(oldUser.getDelFlag());
+            carUser.setCreateTime(oldUser.getCreateTime());
+            carUser.setRegisterType(oldUser.getRegisterType());
+            carUser.setUpdateTime(LocalDateTime.now());
+            
+            return updateById(carUser);
+        }
+    }
+    
+    @Override
+    @Transactional
+    public Boolean updateStatus(Long id, String status) {
+        if (id == null || !StringUtils.hasText(status)) {
+            return false;
+        }
+        
+        CarUser carUser = getById(id);
+        if (carUser == null || "1".equals(carUser.getDelFlag())) {
+            return false;
+        }
+        
+        carUser.setStatus(status);
+        carUser.setUpdateTime(LocalDateTime.now());
+        
+        return updateById(carUser);
+    }
+    
+    @Override
+    @Transactional
+    public Boolean deleteByIds(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return false;
+        }
+        
+        // 逻辑删除
+        return lambdaUpdate()
+                .set(CarUser::getDelFlag, "1")
+                .set(CarUser::getUpdateTime, LocalDateTime.now())
+                .in(CarUser::getId, ids)
+                .update();
+    }
+    
+    @Override
+    @Transactional
+    public Boolean resetPassword(CarUserDTO carUserDTO) {
+        if (carUserDTO == null || carUserDTO.getId() == null || !StringUtils.hasText(carUserDTO.getPassword())) {
+            return false;
+        }
+        
+        CarUser carUser = getById(carUserDTO.getId());
+        if (carUser == null || "1".equals(carUser.getDelFlag())) {
+            return false;
+        }
+        
+        // 加密新密码
+        String encryptedPassword = SecurityUtils.encryptPassword(carUserDTO.getPassword());
+        
+        // 更新密码
+        return lambdaUpdate()
+                .set(CarUser::getPassword, encryptedPassword)
+                .set(CarUser::getUpdateTime, LocalDateTime.now())
+                .eq(CarUser::getId, carUserDTO.getId())
+                .update();
+    }
+    
+    @Override
+    public byte[] export(CarUserDTO carUserDTO) {
+        try {
+            // 查询用户数据
+            LambdaQueryWrapper<CarUser> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(CarUser::getDelFlag, "0");
+            
+            // 添加查询条件
+            queryWrapper.like(StringUtils.hasText(carUserDTO.getUsername()), CarUser::getUsername, carUserDTO.getUsername())
+                    .like(StringUtils.hasText(carUserDTO.getNickname()), CarUser::getNickname, carUserDTO.getNickname())
+                    .eq(StringUtils.hasText(carUserDTO.getStatus()), CarUser::getStatus, carUserDTO.getStatus());
+            
+            // 时间范围查询
+            if (StringUtils.hasText(carUserDTO.getCreateTimeStart()) && StringUtils.hasText(carUserDTO.getCreateTimeEnd())) {
+                queryWrapper.between(CarUser::getCreateTime, 
+                        LocalDateTime.parse(carUserDTO.getCreateTimeStart(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                        LocalDateTime.parse(carUserDTO.getCreateTimeEnd(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            }
+            
+            // 按创建时间降序排序
+            queryWrapper.orderByDesc(CarUser::getCreateTime);
+            
+            // 查询数据
+            List<CarUser> userList = list(queryWrapper);
+            
+            // 创建工作簿
+            Workbook workbook = new XSSFWorkbook();
+            Sheet sheet = workbook.createSheet("前台用户数据");
+            
+            // 创建标题行
+            Row headerRow = sheet.createRow(0);
+            String[] headers = {"用户名", "昵称", "性别", "状态", "邮箱", "手机号码", "注册类型", "创建时间", "最后登录时间", "备注"};
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+            }
+            
+            // 填充数据
+            int rowNum = 1;
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            for (CarUser user : userList) {
+                Row row = sheet.createRow(rowNum++);
+                
+                row.createCell(0).setCellValue(user.getUsername());
+                row.createCell(1).setCellValue(user.getNickname() != null ? user.getNickname() : "");
+                
+                // 性别
+                String gender = "";
+                if ("0".equals(user.getGender())) {
+                    gender = "男";
+                } else if ("1".equals(user.getGender())) {
+                    gender = "女";
+                } else {
+                    gender = "保密";
+                }
+                row.createCell(2).setCellValue(gender);
+                
+                // 状态
+                String status = "0".equals(user.getStatus()) ? "正常" : "停用";
+                row.createCell(3).setCellValue(status);
+                
+                row.createCell(4).setCellValue(user.getEmail() != null ? user.getEmail() : "");
+                row.createCell(5).setCellValue(user.getPhoneNumber() != null ? user.getPhoneNumber() : "");
+                
+                // 注册类型
+                String registerType = "0".equals(user.getRegisterType()) ? "管理员新增" : "用户自助注册";
+                row.createCell(6).setCellValue(registerType);
+                
+                // 创建时间
+                row.createCell(7).setCellValue(user.getCreateTime() != null ? user.getCreateTime().format(formatter) : "");
+                
+                // 最后登录时间
+                row.createCell(8).setCellValue(user.getLastLoginTime() != null ? user.getLastLoginTime().format(formatter) : "");
+                
+                // 备注
+                row.createCell(9).setCellValue(user.getRemark() != null ? user.getRemark() : "");
+            }
+            
+            // 调整列宽
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+            
+            // 将工作簿写入字节数组
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            workbook.write(outputStream);
+            workbook.close();
+            
+            return outputStream.toByteArray();
+        } catch (Exception e) {
+            log.error("导出用户数据失败", e);
+            throw new RuntimeException("导出用户数据失败: " + e.getMessage(), e);
+        }
     }
 }

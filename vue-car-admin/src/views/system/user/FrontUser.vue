@@ -367,6 +367,16 @@ const initPage = async () => {
 const handleQueryPage = async () => {
   try {
     queryLoading.value = true;
+    
+    // 处理日期范围查询
+    if (userQuery.createTimeList && userQuery.createTimeList.length === 2) {
+      userQuery.createTimeStart = userQuery.createTimeList[0]?.format('YYYY-MM-DD 00:00:00');
+      userQuery.createTimeEnd = userQuery.createTimeList[1]?.format('YYYY-MM-DD 23:59:59');
+    } else {
+      userQuery.createTimeStart = undefined;
+      userQuery.createTimeEnd = undefined;
+    }
+    
     const res = await carUserApi.queryPage(userQuery);
     if (res && res.data && res.data.records) {
       userList.value = res.data.records.map(item => ({
@@ -391,6 +401,8 @@ const resetPage = () => {
     nickname: undefined,
     status: undefined,
     createTimeList: undefined,
+    createTimeStart: undefined,
+    createTimeEnd: undefined,
     pageNum: 1,
     pageSize: 10
   });
@@ -547,8 +559,15 @@ const handleResetPassword = async () => {
     await resetPasswordFormRef.value.validate();
     resetPasswordLoading.value = true;
     
+    // 确保userId是数字类型转换
+    const userId = resetPasswordForm.userId ? Number(resetPasswordForm.userId) : undefined;
+    if (!userId) {
+      message.error('用户ID无效');
+      return;
+    }
+    
     await carUserApi.resetPassword(
-      resetPasswordForm.userId,
+      userId,
       resetPasswordForm.password,
       ''  // 密码加密请求key，如果后端需要可以加上
     );
@@ -566,15 +585,33 @@ const handleResetPassword = async () => {
 // 导出Excel
 const handleExportExcel = async () => {
   try {
-    const res = await carUserApi.exportExcel(userQuery);
-    if (res && res.data) {
-      // 假设后端返回了文件下载地址
-      const link = document.createElement('a');
-      link.href = res.data;
-      link.download = '前台用户数据.xlsx';
-      link.click();
-      message.success('导出成功');
+    // 处理日期范围查询
+    if (userQuery.createTimeList && userQuery.createTimeList.length === 2) {
+      userQuery.createTimeStart = userQuery.createTimeList[0]?.format('YYYY-MM-DD 00:00:00');
+      userQuery.createTimeEnd = userQuery.createTimeList[1]?.format('YYYY-MM-DD 23:59:59');
+    } else {
+      userQuery.createTimeStart = undefined;
+      userQuery.createTimeEnd = undefined;
     }
+    
+    const res = await carUserApi.exportExcel(userQuery);
+    if (!res) {
+      message.error('导出失败');
+      return;
+    }
+    
+    // 创建下载链接
+    const blob = res instanceof Blob ? res : new Blob([res]);
+    const downloadLink = document.createElement('a');
+    const url = window.URL.createObjectURL(blob);
+    downloadLink.href = url;
+    downloadLink.download = '前台用户数据.xlsx';
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+    window.URL.revokeObjectURL(url);
+    
+    message.success('导出成功');
   } catch (error) {
     console.error('导出失败', error);
     message.error('导出失败');

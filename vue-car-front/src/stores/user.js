@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { ElMessage } from 'element-plus'
 import { userApi } from '@/api/user'
 
 export const useUserStore = defineStore('user', () => {
@@ -25,6 +26,10 @@ export const useUserStore = defineStore('user', () => {
     try {
       const res = await userApi.login(loginData)
       if (res.code === 200) {
+        if(!res.data){
+          ElMessage.error('账号异常或被封禁，请联系管理员')
+          return false
+        }
         // 确保token包含Bearer前缀，这是Spring Security的标准格式
         const tokenWithPrefix = res.data.token.startsWith('Bearer ')
           ? res.data.token

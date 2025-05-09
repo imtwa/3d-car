@@ -89,7 +89,17 @@ export interface CarUserDTO extends CarUser {
     /**
      * 创建时间列表，用于日期范围查询
      */
-    createTimeList?: string[];
+    createTimeList?: any[];
+
+    /**
+     * 创建时间开始，格式化后的字符串
+     */
+    createTimeStart?: string;
+    
+    /**
+     * 创建时间结束，格式化后的字符串
+     */
+    createTimeEnd?: string;
 
     /**
      * 密码加密请求key
