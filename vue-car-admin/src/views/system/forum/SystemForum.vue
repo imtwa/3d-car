@@ -174,6 +174,59 @@
         </template>
       </a-table>
     </a-flex>
+
+    <!-- 帖子详情弹窗 -->
+    <a-modal v-model:open="postDetailModalActive" width="800px" :footer="null">
+      <template #title>
+        <div>帖子详情</div>
+      </template>
+      <div class="post-detail-table">
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="width: 20%; padding: 8px; border: 1px solid #f0f0f0; background: #fafafa; font-weight: bold;">标题</td>
+            <td style="padding: 8px; border: 1px solid #f0f0f0;">{{ postDetail.title }}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #f0f0f0; background: #fafafa; font-weight: bold;">发布者</td>
+            <td style="padding: 8px; border: 1px solid #f0f0f0;">{{ postDetail.username || postDetail.user?.username }}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #f0f0f0; background: #fafafa; font-weight: bold;">内容</td>
+            <td style="padding: 8px; border: 1px solid #f0f0f0;">
+              <div v-html="postDetail.content" style="max-height: 300px; overflow-y: auto;"></div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #f0f0f0; background: #fafafa; font-weight: bold;">浏览次数</td>
+            <td style="padding: 8px; border: 1px solid #f0f0f0;">{{ postDetail.viewCount }}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #f0f0f0; background: #fafafa; font-weight: bold;">点赞次数</td>
+            <td style="padding: 8px; border: 1px solid #f0f0f0;">{{ postDetail.likeCount }}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #f0f0f0; background: #fafafa; font-weight: bold;">评论次数</td>
+            <td style="padding: 8px; border: 1px solid #f0f0f0;">{{ postDetail.commentCount }}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #f0f0f0; background: #fafafa; font-weight: bold;">是否置顶</td>
+            <td style="padding: 8px; border: 1px solid #f0f0f0;">{{ postDetail.isTop === '1' ? '是' : '否' }}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #f0f0f0; background: #fafafa; font-weight: bold;">状态</td>
+            <td style="padding: 8px; border: 1px solid #f0f0f0;">{{ postDetail.status === '0' ? '正常' : '停用' }}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #f0f0f0; background: #fafafa; font-weight: bold;">创建时间</td>
+            <td style="padding: 8px; border: 1px solid #f0f0f0;">{{ postDetail.createTime ? dayjs(postDetail.createTime).format('YYYY-MM-DD HH:mm:ss') : '-' }}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #f0f0f0; background: #fafafa; font-weight: bold;">最后更新时间</td>
+            <td style="padding: 8px; border: 1px solid #f0f0f0;">{{ postDetail.updateTime ? dayjs(postDetail.updateTime).format('YYYY-MM-DD HH:mm:ss') : '-' }}</td>
+          </tr>
+        </table>
+      </div>
+    </a-modal>
   </div>
 </template>
 
@@ -230,6 +283,10 @@ const postTotal = ref(0);
 // 选择行相关
 const selectedIds = ref<string[]>([]);
 const openDeletePopconfirm = ref(false);
+
+// 帖子详情相关
+const postDetailModalActive = ref(false);
+const postDetail = reactive<CarPost>({});
 
 const router = useRouter();
 
@@ -393,9 +450,38 @@ const handleRowClick = (record: CarPostVO) => {
 };
 
 // 导航到帖子详情页
-const navigateToPostDetail = (event: MouseEvent, id: string) => {
+const navigateToPostDetail = async (event: MouseEvent, id: string) => {
   event.stopPropagation();
-  router.push(`/system/forum/post/${id}`);
+  try {
+    // 先清空之前的详情数据，重置为空对象
+    for (const key in postDetail) {
+      if (Object.prototype.hasOwnProperty.call(postDetail, key)) {
+        delete (postDetail as any)[key];
+      }
+    }
+    
+    // 根据行数据直接获取详情，避免额外请求
+    const rowData = postList.value.find(item => item.id === id);
+    if (rowData) {
+      // 直接使用列表中的数据
+      Object.assign(postDetail, rowData);
+      postDetailModalActive.value = true;
+      console.log('从行数据加载详情:', postDetail);
+    } else {
+      // 如果找不到行数据，再从API获取
+      const res = await carPostApi.queryById(id);
+      if (res) {
+        Object.assign(postDetail, res);
+        postDetailModalActive.value = true;
+        console.log('从API加载详情:', postDetail);
+      } else {
+        message.error('获取帖子详情失败');
+      }
+    }
+  } catch (error) {
+    console.error('获取帖子详情失败', error);
+    message.error('获取帖子详情失败');
+  }
 };
 
 // 导航到评论管理页面
