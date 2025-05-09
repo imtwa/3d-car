@@ -61,7 +61,7 @@
       >
         <template #title>
           <a-flex :gap="8" wrap="wrap" >
-            <a-button type="primary" @click="handleModelStatus('新增前台用户')">
+            <a-button type="primary" @click="() => { resetForm(); handleModelStatus('新增前台用户'); }">
               <template #icon>
                 <PlusOutlined />
               </template>
@@ -169,31 +169,11 @@
         <a-form-item label="密码" name="password" :wrapper-col="{ span: 16 }" v-if="!carUserDTO.id">
           <a-input-password v-model:value="carUserDTO.password" placeholder="请输入密码" allowClear/>
         </a-form-item>
-        <a-form-item label="昵称" name="nickname" :wrapper-col="{ span: 16 }">
-          <a-input v-model:value="carUserDTO.nickname" placeholder="请输入昵称" :maxlength="20" show-count allowClear/>
-        </a-form-item>
-        <a-form-item label="性别">
-          <a-radio-group v-model:value="carUserDTO.gender">
-            <a-radio :value="item.value" v-for="item in user_gender">{{ item.label }}</a-radio>
-          </a-radio-group>
-        </a-form-item>
         <a-form-item label="状态">
           <a-radio-group v-model:value="carUserDTO.status">
             <a-radio :value="item.value" v-for="item in sys_status">{{ item.label }}</a-radio>
           </a-radio-group>
         </a-form-item>
-        <a-row>
-          <a-col :span="12">
-            <a-form-item label="手机号" :label-col="{ span: 8 }" name="phoneNumber">
-              <a-input v-model:value="carUserDTO.phoneNumber" placeholder="请输入手机号码" allowClear/>
-            </a-form-item>
-          </a-col>
-          <a-col :span="12">
-            <a-form-item label="邮箱" :label-col="{ span: 5 }" name="email">
-              <a-input v-model:value="carUserDTO.email" placeholder="请输入邮箱" allowClear/>
-            </a-form-item>
-          </a-col>
-        </a-row>
         <a-form-item label="备注" :wrapper-col="{ span: 16 }">
           <a-textarea v-model:value="carUserDTO.remark" placeholder="请输入备注信息" :rows="3" :maxlength="200" show-count allowClear/>
         </a-form-item>
@@ -256,13 +236,13 @@ const user_register_type = [
 // 表格列定义
 const userColumn = [
   { title: '用户名', dataIndex: 'username', key: 'username', width: 120 },
-  { title: '昵称', dataIndex: 'nickname', key: 'nickname', width: 120 },
-  { title: '性别', dataIndex: 'gender', key: 'gender', width: 80, 
-    customRender: ({text}: {text: string}) => 
-      user_gender.find(item => item.value === text)?.label || '保密' 
-  },
-  { title: '手机号码', dataIndex: 'phoneNumber', key: 'phoneNumber', width: 130 },
-  { title: '邮箱', dataIndex: 'email', key: 'email', width: 180 },
+  // { title: '昵称', dataIndex: 'nickname', key: 'nickname', width: 120 },
+  // { title: '性别', dataIndex: 'gender', key: 'gender', width: 80, 
+  //   customRender: ({text}: {text: string}) => 
+  //     user_gender.find(item => item.value === text)?.label || '保密' 
+  // },
+  // { title: '手机号码', dataIndex: 'phoneNumber', key: 'phoneNumber', width: 130 },
+  // { title: '邮箱', dataIndex: 'email', key: 'email', width: 180 },
   { title: '状态', dataIndex: 'status', key: 'status', width: 100 },
   { title: '注册类型', dataIndex: 'registerType', key: 'registerType', width: 120 },
   { title: '创建时间', dataIndex: 'createTime', key: 'createTime', width: 160 },
@@ -293,16 +273,6 @@ const userRules: Record<string, Rule[]> = {
   password: [
     { required: true, message: '请输入密码' },
     { min: 6, max: 20, message: '密码长度必须在6-20之间' }
-  ],
-  nickname: [
-    { required: true, message: '请输入昵称' },
-    { max: 20, message: '昵称最多20个字符' }
-  ],
-  email: [
-    { type: 'email', message: '请输入正确的邮箱格式' }
-  ],
-  phoneNumber: [
-    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号码' }
   ]
 };
 
@@ -314,17 +284,13 @@ const carUserDTO = reactive<CarUserDTO>({
 });
 
 // 弹窗状态
-const modalActive = {
+const modalActive = reactive({
   open: false,
   title: '',
-  openModal: (title: string) => {
-    modalActive.open = true;
-    modalActive.title = title;
-  },
   closeModal: () => {
     modalActive.open = false;
   }
-};
+});
 
 // 重置密码相关
 const resetPasswordModelActive = ref(false);
@@ -472,17 +438,21 @@ const handleUpdateStatus = async (event: MouseEvent, id: string, currentStatus: 
 
 // 打开编辑弹窗
 const handleModelStatus = (title: string) => {
-  modalActive.openModal(title);
+  resetPasswordModelActive.value = false;
+  modalActive.open = true;
+  modalActive.title = title;
 };
 
 // 获取用户信息
 const getUserInfo = async (event: MouseEvent, id: string) => {
   event.stopPropagation();
   try {
+    resetForm();
+    
     const res = await carUserApi.queryById(id);
     if (res) {
       Object.assign(carUserDTO, res);
-      modalActive.openModal('编辑前台用户');
+      handleModelStatus('编辑前台用户');
     }
   } catch (error) {
     console.error('获取用户信息失败', error);
@@ -500,7 +470,7 @@ const handleSubmit = async () => {
     message.success(carUserDTO.id ? '修改成功' : '新增成功');
     
     // 关闭弹窗
-    modalActive.closeModal();
+    modalActive.open = false;
     // 刷新数据
     handleQueryPage();
   } catch (error) {
@@ -516,12 +486,7 @@ const resetForm = () => {
     id: undefined,
     username: undefined,
     password: undefined,
-    nickname: undefined,
-    avatar: undefined,
-    gender: '2',
     status: '0',
-    email: undefined,
-    phoneNumber: undefined,
     remark: undefined,
     registerType: '0'
   });
@@ -539,6 +504,9 @@ const handleRowClick = (record: CarUserVO) => {
 // 打开重置密码弹窗
 const handleOpenResetPasswordModel = (event: MouseEvent, record: CarUserVO) => {
   event.stopPropagation();
+  // 确保编辑弹窗关闭
+  modalActive.open = false;
+  
   resetPasswordForm.userId = record.id as string;
   resetPasswordForm.password = '';
   resetPasswordForm.confirmPassword = '';
