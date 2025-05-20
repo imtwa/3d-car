@@ -54,25 +54,25 @@
                   class="forum-post"
                   v-for="collection in collections"
                   :key="collection.id"
-                  @click="goToPost(collection.post.id)"
+                  @click="goToPost(collection.post?.id)"
                 >
                   <div class="post-header">
                     <div class="post-author">
                       <el-avatar :size="40">
-                        {{ collection.post.user?.username.charAt(0) }}
+                        {{ collection.post?.user?.username.charAt(0) }}
                       </el-avatar>
                       <div>
-                        <div>{{ collection.post.user?.username }}</div>
-                        <div class="post-meta">{{ formatDate(collection.post.createTime) }}</div>
+                        <div>{{ collection.post?.user?.username || '未知用户'}}</div>
+                        <div class="post-meta">{{ formatDate(collection.post?.createTime) }}</div>
                       </div>
                     </div>
                   </div>
                   <div class="post-content">
-                    <h3>{{ collection.post.title }}</h3>
-                    <p>{{ collection.post.content }}</p>
+                    <h3>{{ collection.post?.title || '帖子已被删除'}}</h3>
+                    <p>{{ collection.post?.content || '帖子已被删除'}}</p>
                   </div>
                   <div class="post-actions">
-                    <div class="post-action">💬 评论 ({{ collection.post.commentCount || 0 }})</div>
+                    <div class="post-action">💬 评论 ({{ collection.post?.commentCount || 0 }})</div>
                     <div class="post-action">🔖 收藏于 {{ formatDate(collection.createTime) }}</div>
                   </div>
                 </div>
@@ -124,7 +124,7 @@
                     <p>{{ post.content }}</p>
                   </div>
                   <div class="post-actions">
-                    <div class="post-action">👍 点赞 ({{ post.likeCount || 0 }})</div>
+                    <!-- <div class="post-action">👍 点赞 ({{ post.likeCount || 0 }})</div> -->
                     <div class="post-action">💬 评论 ({{ post.commentCount || 0 }})</div>
                     <div class="post-action">👁️ 浏览 ({{ post.viewCount || 0 }})</div>
                   </div>
