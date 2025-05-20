@@ -38,11 +38,13 @@ public class CarPostComment implements Serializable {
     /**
      * 帖子ID
      */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long postId;
 
     /**
      * 评论用户ID
      */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long userId;
 
     /**
