@@ -184,7 +184,7 @@ const commentColumn = [
   { title: '评论用户', dataIndex: 'username', key: 'username', width: 120 },
   // { title: '回复对象', dataIndex: 'parentUsername', key: 'parentUsername', width: 120 },
   { title: '点赞次数', dataIndex: 'likeCount', key: 'likeCount', width: 100 },
-  { title: '状态', dataIndex: 'status', key: 'status', width: 100 },
+  // { title: '状态', dataIndex: 'status', key: 'status', width: 100 },
   { title: '评论时间', dataIndex: 'createTime', key: 'createTime', width: 160 },
   { title: '操作', key: 'action', width: 180, fixed: 'right' }
 ];

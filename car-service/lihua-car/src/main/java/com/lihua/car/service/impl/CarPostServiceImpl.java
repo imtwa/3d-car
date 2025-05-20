@@ -381,30 +381,50 @@ public class CarPostServiceImpl extends ServiceImpl<CarPostMapper, CarPost> impl
     @Override
     @Transactional
     public int deleteComment(Long commentId, Long userId) {
-        CarPostComment comment = commentMapper.selectById(commentId);
-        if (comment == null || !comment.getUserId().equals(userId)) {
+        // 获取评论信息
+        LambdaQueryWrapper<CarPostComment> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(CarPostComment::getId, commentId);
+        // 重要：这里不添加del_flag条件，以便能查到所有评论
+        CarPostComment comment = commentMapper.selectOne(queryWrapper);
+        
+        if (comment == null) {
             return 0;
         }
         
-        // 标记删除
-        comment.setDelFlag("1");
-        comment.setUpdateTime(LocalDateTime.now());
-        int result = commentMapper.updateById(comment);
+        // 验证用户权限：必须是评论作者
+        if (userId != null && !comment.getUserId().equals(userId)) {
+            // 如果不是作者，检查是否为管理员
+            CarUser user = userMapper.selectById(userId);
+            if (user == null) {
+                // 既不是作者也不是管理员，拒绝删除
+                return 0;
+            }
+        }
+        
+        // 直接使用SQL更新来绕过MyBatis-Plus的逻辑删除过滤
+        int result = commentMapper.update(null, 
+            new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<CarPostComment>()
+                .eq(CarPostComment::getId, commentId)
+                .set(CarPostComment::getDelFlag, "1")
+                .set(CarPostComment::getUpdateTime, LocalDateTime.now()));
         
         // 减少评论数
         if (result > 0) {
             postMapper.updateCommentCount(comment.getPostId(), -1);
             
             // 删除子评论
-            LambdaQueryWrapper<CarPostComment> queryWrapper = new LambdaQueryWrapper<>();
-            queryWrapper.eq(CarPostComment::getParentId, commentId);
-            List<CarPostComment> children = commentMapper.selectList(queryWrapper);
+            LambdaQueryWrapper<CarPostComment> childQueryWrapper = new LambdaQueryWrapper<>();
+            childQueryWrapper.eq(CarPostComment::getParentId, commentId);
+            List<CarPostComment> children = commentMapper.selectList(childQueryWrapper);
             
             if (CollectionUtils.isNotEmpty(children)) {
                 for (CarPostComment child : children) {
-                    child.setDelFlag("1");
-                    child.setUpdateTime(LocalDateTime.now());
-                    commentMapper.updateById(child);
+                    // 直接使用SQL更新来绕过MyBatis-Plus的逻辑删除过滤
+                    commentMapper.update(null, 
+                        new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<CarPostComment>()
+                            .eq(CarPostComment::getId, child.getId())
+                            .set(CarPostComment::getDelFlag, "1")
+                            .set(CarPostComment::getUpdateTime, LocalDateTime.now()));
                     
                     // 每删除一个子评论，减少帖子评论数
                     postMapper.updateCommentCount(comment.getPostId(), -1);

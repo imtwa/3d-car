@@ -159,4 +159,19 @@ public class CarPostController extends BaseController {
                                  @RequestParam(value = "pageSize", defaultValue = "10") int pageSize) {
         return success(postService.getUserComments(userId, pageNum, pageSize));
     }
+
+    /**
+     * 批量删除帖子
+     */
+    @DeleteMapping("")
+    public String batchDeletePosts(@RequestBody Long[] ids) {
+        boolean result = true;
+        for (Long id : ids) {
+            int deleteResult = postService.deletePost(id, null);
+            if (deleteResult <= 0) {
+                result = false;
+            }
+        }
+        return success(result);
+    }
 }

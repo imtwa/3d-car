@@ -268,7 +268,7 @@ const postColumn = [
   { title: '点赞次数', dataIndex: 'likeCount', key: 'likeCount', width: 100 },
   { title: '评论次数', dataIndex: 'commentCount', key: 'commentCount', width: 100 },
   { title: '置顶', dataIndex: 'isTop', key: 'isTop', width: 100 },
-  { title: '状态', dataIndex: 'status', key: 'status', width: 100 },
+  // { title: '状态', dataIndex: 'status', key: 'status', width: 100 },
   { title: '创建时间', dataIndex: 'createTime', key: 'createTime', width: 160 },
   { title: '操作', key: 'action', fixed: 'right', width: 240 }
 ];

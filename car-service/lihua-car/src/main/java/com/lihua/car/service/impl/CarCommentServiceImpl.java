@@ -284,11 +284,12 @@ public class CarCommentServiceImpl extends ServiceImpl<CarCommentMapper, CarComm
     @Override
     @Transactional
     public int deleteCommentById(Long id) {
-        CarComment comment = new CarComment();
-        comment.setId(id);
-        comment.setDelFlag("1");
-        comment.setUpdateTime(LocalDateTime.now());
-        return this.updateById(comment) ? 1 : 0;
+        // 直接使用SQL更新来绕过MyBatis-Plus的逻辑删除过滤
+        return commentMapper.update(null, 
+            new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<CarComment>()
+                .eq(CarComment::getId, id)
+                .set(CarComment::getDelFlag, "1")
+                .set(CarComment::getUpdateTime, LocalDateTime.now()));
     }
 
     /**
