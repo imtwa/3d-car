@@ -372,10 +372,21 @@ public class CarModelServiceImpl extends ServiceImpl<CarModelMapper, CarModel> i
      */
     @Override
     public int deleteModelById(Long id) {
-        // 先删除车型关联的图片
-        imageMapper.deleteImageByModelId(id);
-        // 再删除车型
-        return modelMapper.deleteModelById(id);
+        // 先删除车型关联的图片 - 将del_flag设为1
+        com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<CarImage> imageUpdateWrapper = 
+            new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<>();
+        imageUpdateWrapper.eq(CarImage::getModelId, id)
+            .set(CarImage::getDelFlag, "1")
+            .set(CarImage::getUpdateTime, LocalDateTime.now());
+        imageMapper.update(null, imageUpdateWrapper);
+        
+        // 再删除车型 - 将del_flag设为1
+        com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<CarModel> modelUpdateWrapper = 
+            new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<>();
+        modelUpdateWrapper.eq(CarModel::getId, id)
+            .set(CarModel::getDelFlag, "1")
+            .set(CarModel::getUpdateTime, LocalDateTime.now());
+        return modelMapper.update(null, modelUpdateWrapper);
     }
 
     /**
@@ -386,12 +397,11 @@ public class CarModelServiceImpl extends ServiceImpl<CarModelMapper, CarModel> i
      */
     @Override
     public int deleteModelByIds(Long[] ids) {
-        // 先删除车型关联的图片
+        int count = 0;
         for (Long id : ids) {
-            imageMapper.deleteImageByModelId(id);
+            count += deleteModelById(id);
         }
-        // 再删除车型
-        return modelMapper.deleteModelByIds(ids);
+        return count;
     }
 
     /**

@@ -73,6 +73,14 @@ public class CarModelController extends BaseController {
     public String deleteModelById(@PathVariable("id") Long id) {
         return success(carModelService.deleteModelById(id));
     }
+    
+    /**
+     * 删除车型 (适配新的URL格式)
+     */
+    @DeleteMapping("/{id}")
+    public String deleteModel(@PathVariable("id") Long id) {
+        return success(carModelService.deleteModelById(id));
+    }
 
     /**
      * 变更车型状态
