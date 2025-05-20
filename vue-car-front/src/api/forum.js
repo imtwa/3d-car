@@ -107,7 +107,7 @@ export const addComment = (postId, data) => {
 // 删除评论
 export const deleteComment = (commentId, userId) => {
   return request({
-    url: `/car/post/comment/${commentId}`,
+    url: `/car/comment/${commentId}`,
     method: 'delete',
     params: { userId }
   })
