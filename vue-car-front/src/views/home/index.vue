@@ -47,7 +47,7 @@
         >
           <el-carousel-item v-for="(item, index) in hotModels" :key="index">
             <div class="model-card carousel-card">
-              <div class="model-image">{{ item.image }}</div>
+              <img class="model-image" :src="item.image">{{ item.name }}</img>
               <div class="model-info">
                 <!-- <h3>{{ item.name }}</h3>
                 <p>{{ item.description }}</p> -->
@@ -69,21 +69,21 @@ const router = useRouter()
 
 const hotModels = ref([
   {
-    name: '奔驰 C级',
+    name: 'Audi A8L',
     description: '豪华轿车的典范之作',
-    image: '奔驰 C级 图片',
+    image: './img/1.jpg',
     link: '/models/1'
   },
   {
-    name: '奥迪 A4L',
+    name: 'Audi A6L',
     description: '科技与优雅的完美结合',
-    image: '奥迪 A4L 图片',
+    image: 'img/2.jpg',
     link: '/models/2'
   },
   {
     name: '奔驰 GLC',
     description: '豪华SUV的新标杆',
-    image: '奔驰 GLC 图片',
+    image: 'img/3.jpg',
     link: '/models/3'
   }
 ])
